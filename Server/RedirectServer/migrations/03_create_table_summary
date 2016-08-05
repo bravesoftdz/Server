@@ -1,0 +1,9 @@
+CREATE TABLE `summary` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `campaign` VARCHAR(128) NOT NULL COMMENT 'campaign name',
+  `view` INT(11) DEFAULT 0 COMMENT 'number of views',
+  `click` INT(11) DEFAULT 0 COMMENT 'number of clicks',
+  PRIMARY KEY (`id`),
+  KEY `campaign` (`campaign`),
+  UNIQUE (`campaign`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8

@@ -1,0 +1,12 @@
+CREATE TABLE `click` (  
+	`id` int(11) NOT NULL AUTO_INCREMENT,  
+	`time` datetime NOT NULL COMMENT 'when the request is performed', 
+	 `request` varchar(255) NOT NULL COMMENT 'resource without parameters',  
+	`query` text COMMENT 'parameters of the request',  
+	`target` text COMMENT 'url to which the request is to be redirected',  
+	`trackCode` varchar(255) DEFAULT NULL COMMENT 'request''s track code', 
+	 `ip` varchar(255) DEFAULT NULL COMMENT 'IPv4 or IPv6 address of the request origin',  
+	`user-agent` varchar(255) DEFAULT NULL COMMENT 'user agent of the browser',  
+	PRIMARY KEY (`id`),  
+	KEY `trackCode` (`trackCode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8

@@ -1,0 +1,34 @@
+program ControlServer;
+{$APPTYPE CONSOLE}
+
+uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
+  System.SysUtils,
+  Winapi.Windows,
+  IdHTTPWebBrokerBridge,
+  Web.WebReq,
+  Web.WebBroker,
+  Datasnap.DSSession,
+  BaseWM in 'BaseWM.pas' {wmBase: TWebModule} ,
+  Server.Launcher in 'Server.Launcher.pas',
+  Controller.webbase in 'Controller.webbase.pas',
+  Server.version in 'server.version.pas',
+  Controller.Base in 'Controller.Base.pas',
+  Controller.Server in 'Controller.server.pas',
+  ControlServerDispatcher in 'ControlServerDispatcher.pas',
+  MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule} ,
+  Settings in 'Settings.pas',
+  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas';
+
+
+{$R *.res}
+
+begin
+  ReportMemoryLeaksOnShutdown := true;
+  TServerLauncher.RunAsConsole(TWebBaseController, TwbmMain);
+
+end.

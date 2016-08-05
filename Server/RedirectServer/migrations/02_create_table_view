@@ -1,0 +1,11 @@
+CREATE TABLE `view` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `time` DATETIME NOT NULL COMMENT 'when the request is performed',
+  `request` VARCHAR(255) NOT NULL COMMENT 'resource without parameters',
+  `query` TEXT COMMENT 'parameters of the request',
+  `trackCode` VARCHAR(255) DEFAULT NULL COMMENT 'request''s track code',
+  `ip` VARCHAR(255) DEFAULT NULL COMMENT 'IPv4 or IPv6 address of the request origin',
+  `user-agent` VARCHAR(255) DEFAULT NULL COMMENT 'user agent of the browser',
+  PRIMARY KEY (`id`),
+  KEY `trackCode` (`trackCode`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8

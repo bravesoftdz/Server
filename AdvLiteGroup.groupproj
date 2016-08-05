@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{08DA1230-0507-4F54-A175-74A67F700974}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Server\RedirectServer\RedirectServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Server\ControlServer\ControlServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tests\Server\RedirectServer\ServerTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="RedirectServer">
+        <MSBuild Projects="Server\RedirectServer\RedirectServer.dproj"/>
+    </Target>
+    <Target Name="RedirectServer:Clean">
+        <MSBuild Projects="Server\RedirectServer\RedirectServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RedirectServer:Make">
+        <MSBuild Projects="Server\RedirectServer\RedirectServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ControlServer">
+        <MSBuild Projects="Server\ControlServer\ControlServer.dproj"/>
+    </Target>
+    <Target Name="ControlServer:Clean">
+        <MSBuild Projects="Server\ControlServer\ControlServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ControlServer:Make">
+        <MSBuild Projects="Server\ControlServer\ControlServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ServerTests">
+        <MSBuild Projects="Tests\Server\RedirectServer\ServerTests.dproj"/>
+    </Target>
+    <Target Name="ServerTests:Clean">
+        <MSBuild Projects="Tests\Server\RedirectServer\ServerTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ServerTests:Make">
+        <MSBuild Projects="Tests\Server\RedirectServer\ServerTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="RedirectServer;ControlServer;ServerTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="RedirectServer:Clean;ControlServer:Clean;ServerTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="RedirectServer:Make;ControlServer:Make;ServerTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

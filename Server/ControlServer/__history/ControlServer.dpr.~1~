@@ -1,0 +1,26 @@
+program ControlServer;
+{$APPTYPE CONSOLE}
+
+uses
+  System.SysUtils,
+  Winapi.Windows,
+  IdHTTPWebBrokerBridge,
+  Web.WebReq,
+  Web.WebBroker,
+  Datasnap.DSSession,
+  BaseWM in 'BaseWM.pas' {wmBase: TWebModule},
+  Server.Launcher in 'Server.Launcher.pas',
+  Controller.webbase in 'Controller.webbase.pas',
+  server.version in 'server.version.pas',
+  Controller.Base in 'Controller.Base.pas',
+  Controller.server in 'Controller.server.pas',
+  ControlServerDispatcher in 'ControlServerDispatcher.pas',
+  MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule};
+
+{$R *.res}
+
+begin
+
+  TServerLauncher.RunAsConsole(TWebBaseController,TwbmMain);
+
+end.

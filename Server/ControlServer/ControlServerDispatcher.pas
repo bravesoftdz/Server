@@ -14,7 +14,6 @@ type
   TControlServerController = class abstract(TBaseController)
   private
     class var Settings: TSettings;
-    class var redirectServerUrl: String;
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var WebResource: IRedirectServerProxy;
 
@@ -34,6 +33,9 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure restart(ctx: TWebContext);
 
+    [MVCPath('/routes')]
+    [MVCHTTPMethod([httpGET])]
+    procedure getRoutes(ctx: TWebContext);
   end;
 
 implementation
@@ -45,6 +47,11 @@ uses
   System.Types, System.SysUtils, IdStack;
 
 { TControlServerController }
+
+procedure TControlServerController.getRoutes(ctx: TWebContext);
+begin
+    Render(WebResource.getRoutes);
+end;
 
 procedure TControlServerController.OnBeforeAction(Context: TWebContext;
   const AActionNAme: string; var Handled: Boolean);

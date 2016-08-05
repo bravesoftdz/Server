@@ -31,10 +31,10 @@ type
     // [mapping(TJSONOBJECT)]
     function serverPing: TResponse;
 
-//    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/echo/{text}')]
-//    [Headers('ContentType', 'text/plain')]
-//    [Headers('Accept', 'text/plain')]
-//    function EchoText([Param('text')] aText: string): String;
+    // [RESTResource(TMVCHTTPMethodType.httpGET, '/news/echo/{text}')]
+    // [Headers('ContentType', 'text/plain')]
+    // [Headers('Accept', 'text/plain')]
+    // function EchoText([Param('text')] aText: string): String;
 
     [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/pause')]
     procedure pause;
@@ -45,6 +45,14 @@ type
     [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/restart')]
     procedure restart;
 
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/routes')]
+    function getRoutes : TJSonObject;
+
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/paused-campaigns')]
+    procedure getPausedCampaigns;
+
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/campaigns')]
+    procedure getCampaigns;
 
     // [MVCPath('/images/($img)')]
     // [MVCHTTPMethod([httpGET])]

@@ -35,21 +35,30 @@ type
 
     [Test]
     procedure loadSingleCampaign();
-
     [Test]
     procedure loadTwoDifferentCampaigns();
-
     [Test]
     procedure loadRouteWithExisitingKey();
-
     [Test]
     procedure loadRoutesNonStringValue();
-
     [Test]
     procedure loadRoutesIgnoreNilValues();
-
     [Test]
     procedure loadTwoRoutesDifferentCampaigns();
+
+    [Test]
+    procedure remove1From0();
+    [Test]
+    procedure remove1ExistingFrom1();
+    [Test]
+    procedure remove2ExistingFrom3();
+    [Test]
+    procedure remove0From2();
+
+    [Test]
+    procedure remove2RoutesOfCampaign22();
+    [Test]
+    procedure remove1RouteOfCampaign22();
 
   end;
 
@@ -175,7 +184,8 @@ end;
 procedure TRouteTests.loadTwoRoutesDifferentCampaigns;
 var
   mapIn: TJSonObject;
-  campaigns: TStringList;
+  campaigns: TJsonArray;
+  campaignsList: TStringList;
   key1, key2, value1, value2: String;
 begin
   Assert.AreEqual(aTRoute.getCampaigns.Count, 0);
@@ -188,15 +198,187 @@ begin
   mapIn.AddPair(key2, value2);
   aTRoute.Add(mapIn);
   campaigns := aTRoute.getCampaigns;
-  Assert.IsTrue(campaigns.Count = 2,
-    'campaign list must contain two elements');
+  Assert.IsTrue(campaigns.Count = 2, 'campaign list must contain two elements');
+  campaignsList := TStringList.Create;
+  campaignsList.Add(campaigns.Get(0).value);
+  campaignsList.Add(campaigns.Get(1).value);
 
-  Assert.AreNotEqual(campaigns.indexOf('campaign1'), -1);
-  Assert.AreNotEqual(campaigns.indexOf('campaign2'), -1);
-  campaigns.Clear;
+  Assert.AreNotEqual(campaignsList.indexOf('campaign1'), -1);
+  Assert.AreNotEqual(campaignsList.indexOf('campaign2'), -1);
   campaigns.DisposeOf;
   mapIn.DisposeOf;
 
+end;
+
+/// Removes zero routes from two exisitng ones
+procedure TRouteTests.remove0From2;
+var
+  routes: TJsonArray;
+  mapIn, mapOut: TJSonObject;
+  key1, key2, value1, value2: String;
+begin
+  Assert.AreEqual(0, aTRoute.getRoutes.Count);
+  key1 := 'campaign1/article1';
+  value1 := 'http://www.example.com';
+  key2 := 'campaign2/article2';
+  value2 := 'http://www.another-example.com';
+
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key1, value1);
+  mapIn.AddPair(key2, value2);
+  aTRoute.Add(mapIn);
+
+  Assert.AreEqual(2, aTRoute.getRoutes.Count);
+
+  routes := TJsonArray.Create;
+
+  aTRoute.remove(routes);
+  mapOut := aTRoute.getRoutes;
+  Assert.AreEqual(2, mapOut.Count);
+  Assert.AreEqual(value1, mapOut.GetValue(key1).value);
+  Assert.AreEqual(value2, mapOut.GetValue(key2).value);
+end;
+
+/// Removes the only exising route
+procedure TRouteTests.remove1ExistingFrom1;
+var
+  routes: TJsonArray;
+  mapIn: TJSonObject;
+  key, value: String;
+begin
+  Assert.AreEqual(aTRoute.getRoutes.Count, 0);
+  key := 'campaign1/article1';
+  value := 'http://www.another-example.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key, value);
+  aTRoute.Add(mapIn);
+  Assert.AreEqual(aTRoute.getRoutes.Count, 1);
+
+  routes := TJsonArray.Create;
+  routes.Add(key);
+  aTRoute.remove(routes);
+  Assert.AreEqual(aTRoute.getRoutes.Count, 0);
+end;
+
+/// Tries to removes a route from empty mapping
+procedure TRouteTests.remove1From0;
+var
+  routes: TJsonArray;
+begin
+  Assert.AreEqual(aTRoute.getRoutes.Count, 0);
+  routes := TJsonArray.Create;
+  routes.Add('a/route');
+  aTRoute.remove(routes);
+  Assert.AreEqual(aTRoute.getRoutes.Count, 0);
+end;
+
+/// Suppose there are two campaigns, with two routes each. Then let's remove
+/// just one routes of the first campaign. Both campaign must remain.
+procedure TRouteTests.remove1RouteOfCampaign22;
+var
+  mapIn, mapOut: TJSonObject;
+  routes: TJsonArray;
+  key11, key12, key21, key22, value11, value12, value21, value22: String;
+  campaignsList : TStringList;
+begin
+  Assert.AreEqual(aTRoute.getCampaigns.Count, 0);
+  key11 := 'campaign1/article1';
+  key12 := 'campaign1/article2';
+  key21 := 'campaign2/article1';
+  key22 := 'campaign2/article2';
+  value11 := 'http://www.example11.com';
+  value12 := 'http://www.example12.com';
+  value21 := 'http://www.example21.com';
+  value22 := 'http://www.example22.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key11, value11);
+  mapIn.AddPair(key12, value12);
+  mapIn.AddPair(key21, value21);
+  mapIn.AddPair(key22, value22);
+
+  aTRoute.Add(mapIn);
+  Assert.AreEqual(2, aTRoute.getCampaigns.Count);
+
+  routes := TJsonArray.Create;
+  routes.Add(key11);
+
+  aTRoute.remove(routes);
+  Assert.AreEqual(2, aTRoute.getCampaigns.Count);
+
+  campaignsList := TStringList.Create;
+  campaignsList.Add(aTRoute.getCampaigns.Get(0).value);
+  campaignsList.Add(aTRoute.getCampaigns.Get(1).value);
+
+  Assert.AreNotEqual(campaignsList.indexOf('campaign1'), -1);
+  Assert.AreNotEqual(campaignsList.indexOf('campaign2'), -1);
+
+  campaignsList.DisposeOf;
+
+end;
+
+/// Removes two existing routes from the mapping with three routes
+procedure TRouteTests.remove2ExistingFrom3;
+var
+  routes: TJsonArray;
+  mapIn: TJSonObject;
+  key1, key2, key3, value1, value2, value3: String;
+begin
+  Assert.AreEqual(aTRoute.getRoutes.Count, 0);
+  key1 := 'campaign1/article1';
+  key2 := 'campaign2/article2';
+  key3 := 'campaign3/article3';
+  value1 := 'http://www.example1.com';
+  value2 := 'http://www.example2.com';
+  value3 := 'http://www.example3.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key1, value1);
+  mapIn.AddPair(key2, value2);
+  mapIn.AddPair(key3, value3);
+
+  aTRoute.Add(mapIn);
+  Assert.AreEqual(3, aTRoute.getRoutes.Count);
+
+  routes := TJsonArray.Create;
+  routes.Add(key1);
+  routes.Add(key3);
+  aTRoute.remove(routes);
+  Assert.AreEqual(1, aTRoute.getRoutes.Count);
+  Assert.AreEqual(value2, aTRoute.getRoutes.GetValue(key2).value);
+end;
+
+/// Suppose there are two campaigns, with two routes each. Then let's remove
+/// both routes of the second campaign. Only the first campaign must remain.
+procedure TRouteTests.remove2RoutesOfCampaign22;
+var
+  mapIn, mapOut: TJSonObject;
+  routes: TJsonArray;
+  key11, key12, key21, key22, value11, value12, value21, value22: String;
+begin
+  Assert.AreEqual(aTRoute.getCampaigns.Count, 0);
+  key11 := 'campaign1/article1';
+  key12 := 'campaign1/article2';
+  key21 := 'campaign2/article1';
+  key22 := 'campaign2/article2';
+  value11 := 'http://www.example11.com';
+  value12 := 'http://www.example12.com';
+  value21 := 'http://www.example21.com';
+  value22 := 'http://www.example22.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key11, value11);
+  mapIn.AddPair(key12, value12);
+  mapIn.AddPair(key21, value21);
+  mapIn.AddPair(key22, value22);
+
+  aTRoute.Add(mapIn);
+  Assert.AreEqual(2, aTRoute.getCampaigns.Count);
+
+  routes := TJsonArray.Create;
+  routes.Add(key21);
+  routes.Add(key22);
+
+  aTRoute.remove(routes);
+  Assert.AreEqual(1, aTRoute.getCampaigns.Count);
+  Assert.AreEqual('campaign1', aTRoute.getCampaigns.Get(0).value);
 end;
 
 { Only a json object with key and value being of string types are to be loaded }

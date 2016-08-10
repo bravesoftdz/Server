@@ -17,8 +17,8 @@ type
     procedure setRoutes(const routes: TDictionary<String, String>);
     procedure setCampaignStatus(const campaign: String; const status: Boolean);
     procedure configure(const Logger: ILogger; const fileName: String);
-    function getCampaigns: TStringList;
-    function getPausedCampaigns: TJsonObject;
+    function getCampaigns: TJsonArray;
+    function getPausedCampaigns: TJsonArray;
     procedure add(const routes: TJsonObject);
   end;
 

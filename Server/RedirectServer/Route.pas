@@ -17,11 +17,12 @@ type
     { a map of campaign statuses: true for active, false for paused }
     FCampaignStatuses: TDictionary<String, Boolean>;
     Logger: ILogger;
+    function campaignExistsInMapper(const campaign: String): Boolean;
 
   public
     function getUrl(const campaign: String; article: String): String; overload;
-    function getPausedCampaigns: TJsonObject;
-    function getCampaigns: TStringList;
+    function getPausedCampaigns: TJsonArray;
+    function getCampaigns: TJsonArray;
     function convertToRoutes(const lines: TStringList)
       : TDictionary<String, String>;
     procedure loadRoutesFromFile(const fileName: String);
@@ -36,6 +37,7 @@ type
     procedure configure(const Logger: ILogger; const fileName: String);
     constructor Create(const Logger: ILogger; const routeFileName: String);
     procedure add(const routes: TJsonObject);
+    procedure remove(const routes: TJsonArray);
     destructor Destroy; override;
   end;
 
@@ -121,6 +123,27 @@ begin
   end;
 end;
 
+/// Returns true if there is at least one route corresponding
+// to the given campaign, false otherwise.
+function TRoute.campaignExistsInMapper(const campaign: String): Boolean;
+var
+  item: TPair<String, String>;
+  routeCampaign: String;
+begin
+  Result := False;
+  for item in FMapper do
+  begin
+    routeCampaign := extractCampaign(item.key, '/');
+    if (campaign = routeCampaign) then
+    begin
+      Result := true;
+      Exit
+    end;
+
+  end;
+
+end;
+
 procedure TRoute.configure(const Logger: ILogger; const fileName: String);
 const
   TAG: String = 'TRoute.configure';
@@ -151,6 +174,31 @@ begin
     FCampaignStatuses.add(key, true);
   end;
 
+end;
+
+/// Removes given routes.
+/// The argument is suposed of the following format
+/// {0: 'route1', 1: 'route2', ...}
+procedure TRoute.remove(const routes: TJsonArray);
+var
+  routeJSONValue: TJSONValue;
+  Route, campaign: String;
+
+begin
+  for routeJSONValue in routes do
+  begin
+    Route := routeJSONValue.value;
+    if FMapper.containsKey(Route) then
+    begin
+      FMapper.remove(Route);
+      campaign := extractCampaign(Route, '/');
+      if not(campaignExistsInMapper(campaign)) then
+      begin
+          FCampaignStatuses.Remove(campaign);
+      end;
+    end;
+
+  end
 end;
 
 function TRoute.convertToRoutes(const lines: TStringList)
@@ -254,30 +302,29 @@ end;
 
 /// Returns a list of campaigns.
 ///
-function TRoute.getCampaigns: TStringList;
+function TRoute.getCampaigns: TJsonArray;
 var
   item: TPair<String, Boolean>;
   Counter: Integer;
 begin
-  Result := TStringList.Create;
+  Result := TJsonArray.Create;
   for item in FCampaignStatuses do
   begin
     Result.add(item.key);
   end;
 end;
 
-function TRoute.getPausedCampaigns: TJsonObject;
+function TRoute.getPausedCampaigns: TJsonArray;
 var
   item: TPair<String, Boolean>;
   Counter: Integer;
 begin
-  Result := TJsonObject.Create;
+  Result := TJsonArray.Create;
   Counter := 0;
   for item in FCampaignStatuses do
     if not(item.value) then
     begin
-      Result.AddPair(IntToStr(Counter), item.key);
-      Counter := Counter + 1;
+      Result.add(item.key);
     end;
 end;
 

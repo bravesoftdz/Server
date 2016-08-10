@@ -21,7 +21,7 @@ type
   public
     function getUrl(const campaign: String; article: String): String; overload;
     function getPausedCampaigns: TJsonObject;
-    function getCampaigns: TJsonObject;
+    function getCampaigns: TStringList;
     function convertToRoutes(const lines: TStringList)
       : TDictionary<String, String>;
     procedure loadRoutesFromFile(const fileName: String);
@@ -35,6 +35,7 @@ type
       const status: Boolean); overload;
     procedure configure(const Logger: ILogger; const fileName: String);
     constructor Create(const Logger: ILogger; const routeFileName: String);
+    procedure add(const routes: TJsonObject);
     destructor Destroy; override;
   end;
 
@@ -74,7 +75,7 @@ begin
     Result := '';
 end;
 
-{ Re }
+{ Returns a list of campaigns. }
 function TRoute.extractCampaigns(const routes: TDictionary<String, String>)
   : TStringList;
 var
@@ -85,9 +86,39 @@ begin
   begin
     campaign := extractCampaign(key, '/');
     if not(campaign.IsEmpty) AND (Result.IndexOf(campaign) = -1) then
-      Result.Add(campaign);
+      Result.add(campaign);
   end;
 
+end;
+
+// { Adds routes to exisitng one. In case a route key already exists, the new route
+// is ignored. The argument is subbosed to have the following format:
+// {'campaign1/route1':'http://www.example.com',
+// 'campaign2/route2':'http://www.another-example.com',
+// .... }
+// }
+procedure TRoute.add(const routes: TJsonObject);
+var
+  aPair: TJSONPair;
+  key, value, campaign: String;
+begin
+  if assigned(routes) then
+  begin
+    for aPair in routes do
+    begin
+      key := aPair.JsonString.value;
+      value := aPair.JsonValue.value;
+      if not(FMapper.containsKey(key)) then
+      begin
+        FMapper.add(key, value);
+        // update the campaign list
+        campaign := extractCampaign(key, '/');
+        if not(campaign.IsEmpty) AND not(FCampaignStatuses.containsKey(campaign))
+        then
+          FCampaignStatuses.add(campaign, true);
+      end;
+    end;
+  end;
 end;
 
 procedure TRoute.configure(const Logger: ILogger; const fileName: String);
@@ -105,8 +136,8 @@ var
 begin
   Result := '';
   aValue := campaign + '/' + article;
-  if (FCampaignStatuses.ContainsKey(campaign) AND FCampaignStatuses.Items[campaign]
-    AND FMapper.ContainsKey(aValue)) then
+  if (FCampaignStatuses.containsKey(campaign) AND FCampaignStatuses.Items
+    [campaign] AND FMapper.containsKey(aValue)) then
     Result := FMapper.Items[aValue];
 end;
 
@@ -117,7 +148,7 @@ begin
   FCampaignStatuses.Clear;
   for key in campaigns do
   begin
-    FCampaignStatuses.Add(key, True);
+    FCampaignStatuses.add(key, true);
   end;
 
 end;
@@ -140,7 +171,7 @@ begin
     Items := RegexObj.Split(Trim(line), 0);
     itemNumber := Length(Items);
     if (itemNumber = 2) then
-      Result.Add(Items[0], Items[1])
+      Result.add(Items[0], Items[1])
     else
       Logger.logInfo(TAG, 'line "' + line + '" seems to contain ' +
         IntToStr(itemNumber) + ' entries (expected: 2)');
@@ -204,7 +235,7 @@ end;
 procedure TRoute.setCampaignStatus(const campaign: String;
   const status: Boolean);
 begin
-  if (FCampaignStatuses.ContainsKey(campaign)) then
+  if (FCampaignStatuses.containsKey(campaign)) then
     FCampaignStatuses.Items[campaign] := status;
 end;
 
@@ -217,21 +248,21 @@ begin
   FMapper.Clear;
   for item in routes do
   begin
-    FMapper.Add(item.key, item.Value);
+    FMapper.add(item.key, item.value);
   end;
 end;
 
-function TRoute.getCampaigns: TJsonObject;
+/// Returns a list of campaigns.
+///
+function TRoute.getCampaigns: TStringList;
 var
   item: TPair<String, Boolean>;
   Counter: Integer;
 begin
-  Result := TJsonObject.Create;
-  Counter := 0;
+  Result := TStringList.Create;
   for item in FCampaignStatuses do
   begin
-    Result.AddPair(IntToStr(Counter), item.key);
-    Counter := Counter + 1;
+    Result.add(item.key);
   end;
 end;
 
@@ -243,7 +274,7 @@ begin
   Result := TJsonObject.Create;
   Counter := 0;
   for item in FCampaignStatuses do
-    if not(item.Value) then
+    if not(item.value) then
     begin
       Result.AddPair(IntToStr(Counter), item.key);
       Counter := Counter + 1;
@@ -252,13 +283,13 @@ end;
 
 function TRoute.getRoutes(): TJsonObject;
 var
-  key, Value: String;
+  key, value: String;
 begin
   Result := TJsonObject.Create;
   for key in self.FMapper.Keys do
   begin
-    Value := self.FMapper.Items[key];
-    Result.AddPair(key, Value);
+    value := self.FMapper.Items[key];
+    Result.AddPair(key, value);
   end;
 end;
 

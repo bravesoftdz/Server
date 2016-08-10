@@ -33,12 +33,30 @@ type
     [TestCase('Three parts', 'a/b/c,/,a')]
     procedure extractCampaign(const str, separ, expected: String);
 
+    [Test]
+    procedure loadSingleCampaign();
+
+    [Test]
+    procedure loadTwoDifferentCampaigns();
+
+    [Test]
+    procedure loadRouteWithExisitingKey();
+
+    [Test]
+    procedure loadRoutesNonStringValue();
+
+    [Test]
+    procedure loadRoutesIgnoreNilValues();
+
+    [Test]
+    procedure loadTwoRoutesDifferentCampaigns();
+
   end;
 
 implementation
 
 uses
-  System.Classes;
+  System.Classes, System.JSON;
 
 procedure TRouteTests.extractCampaign(const str, separ, expected: String);
 var
@@ -130,6 +148,138 @@ begin
   Assert.AreEqual('campaign1', actual[0],
     'The string list element must be "campaign1".');
   actual.DisposeOf;
+end;
+
+/// Ignore those routes whose values are nill
+///
+procedure TRouteTests.loadRoutesIgnoreNilValues;
+var
+  mapIn, mapOut: TJSonObject;
+  key1, key2, value: String;
+begin
+  Assert.IsTrue(aTRoute.getRoutes.Count = 0);
+  key1 := 'campaign1/article1';
+  key2 := 'campaign2/article2';
+  value := 'http://www.example.com/';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key1, value);
+  mapIn.AddPair(key2, nil);
+  aTRoute.Add(mapIn);
+  mapOut := aTRoute.getRoutes;
+  Assert.IsTrue(mapOut.Count = 1);
+  Assert.AreEqual(mapOut.GetValue(key1).value, value);
+  mapIn.DisposeOf;
+end;
+
+/// when loading new routes, the list of campaigns gets updated.
+procedure TRouteTests.loadTwoRoutesDifferentCampaigns;
+var
+  mapIn: TJSonObject;
+  campaigns: TStringList;
+  key1, key2, value1, value2: String;
+begin
+  Assert.AreEqual(aTRoute.getCampaigns.Count, 0);
+  key1 := 'campaign1/article1';
+  key2 := 'campaign2/article2';
+  value1 := 'http://www.example.com/';
+  value2 := 'http://www.another-example.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key1, value1);
+  mapIn.AddPair(key2, value2);
+  aTRoute.Add(mapIn);
+  campaigns := aTRoute.getCampaigns;
+  Assert.IsTrue(campaigns.Count = 2,
+    'campaign list must contain two elements');
+
+  Assert.AreNotEqual(campaigns.indexOf('campaign1'), -1);
+  Assert.AreNotEqual(campaigns.indexOf('campaign2'), -1);
+  campaigns.Clear;
+  campaigns.DisposeOf;
+  mapIn.DisposeOf;
+
+end;
+
+{ Only a json object with key and value being of string types are to be loaded }
+procedure TRouteTests.loadRoutesNonStringValue;
+var
+  map1, map2, mapOut: TJSonObject;
+  key: String;
+begin
+  Assert.IsTrue(aTRoute.getRoutes.Count = 0);
+  key := 'a key';
+
+  map1 := TJSonObject.Create;
+  map2 := TJSonObject.Create;
+  map2.AddPair('foo', 'boo');
+  map1.AddPair(key, map2);
+
+  aTRoute.Add(map1);
+  mapOut := aTRoute.getRoutes;
+
+  Assert.IsTrue(mapOut.Count = 0);
+end;
+
+procedure TRouteTests.loadRouteWithExisitingKey;
+var
+  mapIn1, mapIn2, mapOut: TJSonObject;
+  key, value1, value2: String;
+begin
+  Assert.IsTrue(aTRoute.getRoutes.Count = 0);
+  key := 'camp/art';
+  value1 := 'http://www.example.com/';
+  value2 := 'http://www.another-example.com';
+  mapIn1 := TJSonObject.Create;
+  mapIn1.AddPair(key, value1);
+  aTRoute.Add(mapIn1);
+  mapIn2 := TJSonObject.Create;
+  mapIn2.AddPair(key, value2);
+  aTRoute.Add(mapIn2);
+
+  mapOut := aTRoute.getRoutes;
+
+  Assert.IsTrue(mapOut.Count = 1);
+  Assert.AreEqual(mapOut.GetValue(key).value, value1);
+
+  mapIn1.DisposeOf;
+  mapIn2.DisposeOf;
+end;
+
+procedure TRouteTests.loadSingleCampaign;
+var
+  mapIn, mapOut: TJSonObject;
+  key, value: String;
+begin
+  Assert.IsTrue(aTRoute.getRoutes.Count = 0);
+  key := 'campaign/article';
+  value := 'http://www.example.com/';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key, value);
+  aTRoute.Add(mapIn);
+  mapOut := aTRoute.getRoutes;
+  Assert.IsTrue(mapOut.Count = 1);
+  Assert.AreEqual(mapOut.GetValue(key).value, value);
+  mapIn.DisposeOf;
+end;
+
+procedure TRouteTests.loadTwoDifferentCampaigns;
+var
+  mapIn, mapOut: TJSonObject;
+  key1, key2, value1, value2: String;
+begin
+  Assert.IsTrue(aTRoute.getRoutes.Count = 0);
+  key1 := 'campaign1/article1';
+  key2 := 'campaign2/article2';
+  value1 := 'http://www.example.com/';
+  value2 := 'http://www.another-example.com';
+  mapIn := TJSonObject.Create;
+  mapIn.AddPair(key1, value1);
+  mapIn.AddPair(key2, value2);
+  aTRoute.Add(mapIn);
+  mapOut := aTRoute.getRoutes;
+  Assert.IsTrue(mapOut.Count = 2);
+  Assert.AreEqual(mapOut.GetValue(key1).value, value1);
+  Assert.AreEqual(mapOut.GetValue(key2).value, value2);
+  mapIn.DisposeOf;
 end;
 
 procedure TRouteTests.Setup;

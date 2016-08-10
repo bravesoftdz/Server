@@ -53,6 +53,8 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getCampaignImageWithTrack(ctx: TWebContext);
 
+    { Route related commands: start }
+
     [MVCPath('/routes/reload')]
     [MVCHTTPMethod([httpPUT])]
     procedure LoadRoutes(ctx: TWebContext);
@@ -60,6 +62,12 @@ type
     [MVCPath('/routes')]
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
+
+    [MVCPath('/routes/add')]
+    [MVCHTTPMethod([httpPUT])]
+    procedure addRoutes(ctx: TWebContext);
+
+    { Route related commands: end }
 
     [MVCPath('/statistics/commit')]
     [MVCHTTPMethod([httpPUT])]
@@ -126,6 +134,19 @@ begin
   track := request.params['track'];
   ArchiveAndRedirect(request.params['campaign'], request.params['article'],
     track, ctx);
+end;
+
+{ Adds routes passed in the body of the request. Those routes whose keys
+are already present in the redirect mapping, are to be ignored. The method
+returns a json object with routes that were taken into consideration}
+procedure TRedirectController.addRoutes(ctx: TWebContext);
+var
+  mappings: TJsonObject;
+  request: TMVCWebRequest;
+begin
+  request := ctx.request;
+  mappings := request.BodyAsJSONObject();
+  Route.add(mappings)
 end;
 
 procedure TRedirectController.ArchiveAndRedirect(const campaign, article,
@@ -251,7 +272,7 @@ end;
 
 procedure TRedirectController.getCampaigns(ctx: TWebContext);
 begin
-    Render(Route.getCampaigns)
+  Render(Route.getCampaigns)
 end;
 
 procedure TRedirectController.restart(ctx: TWebContext);

@@ -63,11 +63,19 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
 
+    [MVCPath('/routes/delete')]
+    [MVCHTTPMethod([httpPUT])]
+    procedure DeleteRoutes(ctx: TWebContext);
+
     [MVCPath('/routes/add')]
     [MVCHTTPMethod([httpPUT])]
     procedure addRoutes(ctx: TWebContext);
 
     { Route related commands: end }
+
+    { Logger related commands: start }
+
+    { Logger related commands: end }
 
     [MVCPath('/statistics/commit')]
     [MVCHTTPMethod([httpPUT])]
@@ -137,8 +145,8 @@ begin
 end;
 
 { Adds routes passed in the body of the request. Those routes whose keys
-are already present in the redirect mapping, are to be ignored. The method
-returns a json object with routes that were taken into consideration}
+  are already present in the redirect mapping, are to be ignored. The method
+  returns a json object with routes that were taken into consideration }
 procedure TRedirectController.addRoutes(ctx: TWebContext);
 var
   mappings: TJsonObject;
@@ -198,6 +206,12 @@ begin
 
 end;
 
+/// delete routes
+procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
+begin
+//  Route.
+end;
+
 procedure TRedirectController.getImage(ctx: TWebContext);
 begin
   SendImage(ctx.request.params['img'], ctx);
@@ -219,7 +233,7 @@ begin
   begin
     parts := SplitString(line, '=');
     if Length(parts) = 2 then
-      Result.Add(parts[0], parts[1]);
+      Result.add(parts[0], parts[1]);
   end;
 
 end;

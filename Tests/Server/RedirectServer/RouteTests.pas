@@ -3,14 +3,14 @@ unit RouteTests;
 interface
 
 uses
-  DUnitX.TestFramework, System.Generics.Collections, Route;
+  DUnitX.TestFramework, System.Generics.Collections, Route, InterfaceRoute;
 
 type
 
   [TestFixture]
   TRouteTests = class(TObject)
   strict private
-    aTRoute: TRoute;
+    aTRoute: IRoute;
   public
     [Setup]
     procedure Setup;
@@ -471,7 +471,7 @@ end;
 
 procedure TRouteTests.TearDown;
 begin
-  aTRoute.DisposeOf;
+  aTRoute:= nil;
 end;
 
 end.

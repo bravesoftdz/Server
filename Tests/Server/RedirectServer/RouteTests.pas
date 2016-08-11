@@ -232,7 +232,7 @@ begin
 
   routes := TJsonArray.Create;
 
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   mapOut := aTRoute.getRoutes;
   Assert.AreEqual(2, mapOut.Count);
   Assert.AreEqual(value1, mapOut.GetValue(key1).value);
@@ -256,7 +256,7 @@ begin
 
   routes := TJsonArray.Create;
   routes.Add(key);
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   Assert.AreEqual(aTRoute.getRoutes.Count, 0);
 end;
 
@@ -268,7 +268,7 @@ begin
   Assert.AreEqual(aTRoute.getRoutes.Count, 0);
   routes := TJsonArray.Create;
   routes.Add('a/route');
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   Assert.AreEqual(aTRoute.getRoutes.Count, 0);
 end;
 
@@ -302,7 +302,7 @@ begin
   routes := TJsonArray.Create;
   routes.Add(key11);
 
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   Assert.AreEqual(2, aTRoute.getCampaigns.Count);
 
   campaignsList := TStringList.Create;
@@ -341,7 +341,7 @@ begin
   routes := TJsonArray.Create;
   routes.Add(key1);
   routes.Add(key3);
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   Assert.AreEqual(1, aTRoute.getRoutes.Count);
   Assert.AreEqual(value2, aTRoute.getRoutes.GetValue(key2).value);
 end;
@@ -376,7 +376,7 @@ begin
   routes.Add(key21);
   routes.Add(key22);
 
-  aTRoute.remove(routes);
+  aTRoute.delete(routes);
   Assert.AreEqual(1, aTRoute.getCampaigns.Count);
   Assert.AreEqual('campaign1', aTRoute.getCampaigns.Get(0).value);
 end;

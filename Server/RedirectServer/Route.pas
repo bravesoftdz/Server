@@ -37,7 +37,7 @@ type
     procedure configure(const Logger: ILogger; const fileName: String);
     constructor Create(const Logger: ILogger; const routeFileName: String);
     procedure add(const routes: TJsonObject);
-    procedure remove(const routes: TJsonArray);
+    procedure delete(const routes: TJsonArray);
     destructor Destroy; override;
   end;
 
@@ -176,14 +176,13 @@ begin
 
 end;
 
-/// Removes given routes.
+/// Delete given routes.
 /// The argument is suposed of the following format
 /// {0: 'route1', 1: 'route2', ...}
-procedure TRoute.remove(const routes: TJsonArray);
+procedure TRoute.delete(const routes: TJsonArray);
 var
   routeJSONValue: TJSONValue;
   Route, campaign: String;
-
 begin
   for routeJSONValue in routes do
   begin

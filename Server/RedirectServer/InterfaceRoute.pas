@@ -20,7 +20,7 @@ type
     function getCampaigns: TJsonArray;
     function getPausedCampaigns: TJsonArray;
     procedure add(const routes: TJsonObject);
-    procedure remove(const routes: TJsonArray);
+    procedure delete(const routes: TJsonArray);
     function extractCampaigns(const routes: TDictionary<String, String>)
       : TStringList;
     function extractCampaign(const str: String; const separ: Char): String;

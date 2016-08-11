@@ -208,8 +208,24 @@ end;
 
 /// delete routes
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
+var
+  routes: TJsonArray;
+  jo: TJsonObject;
+  item: TJSOnPair;
+  request: TMVCWebRequest;
 begin
-//  Route.
+  request := ctx.request;
+  jo := request.BodyAsJSONObject;
+  if not(jo = nil) AND (jo.Count > 0) then
+  begin
+    routes := TJsonArray.Create;
+    for item in jo do
+    begin
+      routes.add(item.JsonValue.Value)
+    end;
+    Route.delete(routes);
+    routes.DisposeOf;
+  end;
 end;
 
 procedure TRedirectController.getImage(ctx: TWebContext);

@@ -20,8 +20,8 @@ type
     procedure TearDown;
     [TEST]
     procedure TestPingServer;
-//    [TEST]
-//    procedure TestGetCampainImage;
+    // [TEST]
+    // procedure TestGetCampainImage;
 
     // [Test]
     // [TestCase('Single key',
@@ -46,13 +46,13 @@ uses
 
 procedure TStorageTests.Setup;
 begin
-//   aTStorage := TDMStorage.Create(nil,nil);
-//   data1 := TDictionary<String, Integer>.Create;
-//   data1.Add('cars', 5);
-//   data2 := TDictionary<String, Integer>.Create;
-//   data2.Add('table', 3);
-//   data2.Add('e-book', 21);
-//   data2.Add('room', 98);
+  // aTStorage := TDMStorage.Create(nil,nil);
+  // data1 := TDictionary<String, Integer>.Create;
+  // data1.Add('cars', 5);
+  // data2 := TDictionary<String, Integer>.Create;
+  // data2.Add('table', 3);
+  // data2.Add('e-book', 21);
+  // data2.Add('room', 98);
 end;
 
 procedure TStorageTests.TearDown;
@@ -60,18 +60,18 @@ begin
   aTStorage := nil;
 end;
 
-//procedure TStorageTests.TestGetCampainImage;
-//var
-//  RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
-//  NewsWebResource: IRedirectServerProxy;
-//  r: String;
-//begin
-//  RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-//  NewsWebResource := RESTAdapter.Build('localhost', 5000);
-//  r := NewsWebResource.getCampaignImage('venditori',
-//    'cartellina_natale_2015.jpg');
-//  Assert.IsTrue(r.equals('hello'), 'Il metodo non ha riportato hello');
-//end;
+// procedure TStorageTests.TestGetCampainImage;
+// var
+// RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
+// NewsWebResource: IRedirectServerProxy;
+// r: String;
+// begin
+// RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+// NewsWebResource := RESTAdapter.Build('localhost', 5000);
+// r := NewsWebResource.getCampaignImage('venditori',
+// 'cartellina_natale_2015.jpg');
+// Assert.IsTrue(r.equals('hello'), 'Il metodo non ha riportato hello');
+// end;
 
 procedure TStorageTests.TestPingServer;
 var

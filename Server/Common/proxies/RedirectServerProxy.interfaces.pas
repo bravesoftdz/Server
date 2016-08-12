@@ -19,8 +19,6 @@ type
 
   IRedirectServerProxy = interface(IInvokable)
     ['{6001900A-DB38-4251-BE9D-94CA892A8F73}']
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/reload')]
-    procedure LoadRoutes;
 
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{campaign}/{img}')]
     [Headers('ContentEncoding', 'UTF-16')]
@@ -45,8 +43,21 @@ type
     [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/restart')]
     procedure restart;
 
+    { Route related commands: start }
+
+    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/reload')]
+    procedure LoadRoutes;
+
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/routes')]
-    function getRoutes : TJSonObject;
+    function getRoutes: TJSonObject;
+
+    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/delete')]
+    procedure DeleteRoutes([Body] ABody: String);
+
+    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/add')]
+    procedure addRoutes([Body] ABody: String);
+
+    { Route related commands: end }
 
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/paused-campaigns')]
     procedure getPausedCampaigns;

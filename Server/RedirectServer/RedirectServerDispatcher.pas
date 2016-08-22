@@ -22,13 +22,14 @@ type
     class var Logger: ILogger;
     class var ImgDir: String;
 
-  var
     procedure SendImage(const path: String; const ctx: TWebContext);
     procedure ArchiveAndRedirect(const campaign, article, track: String;
       const ctx: TWebContext);
     function GetQueryMap(const data: TStrings): TDictionary<String, String>;
     function feedQueryParams(const Base: String;
       const params: TDictionary<String, String>): String;
+    class procedure StartServer();
+    class procedure StopServer();
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -206,16 +207,29 @@ begin
 
 end;
 
+class procedure TRedirectController.StopServer;
+begin
+  TRedirectController.Logger.logInfo('TAdvStatsController.StopServer',
+    'Stop the server');
+  TRedirectController.RequestHandler := nil;
+  TRedirectController.Storage.DisposeOf;
+  TRedirectController.Route.Reset();
+  TRedirectController.Route := nil;
+  TRedirectController.Logger := nil;
+  TRedirectController.Settings.DisposeOf;
+
+end;
+
 /// delete routes
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
 var
   routes: TJsonArray;
-  jo: TJsonObject;
+  jo: TJSONValue;
   item: TJSOnPair;
   request: TMVCWebRequest;
 begin
   request := ctx.request;
-  jo := request.BodyAsJSONObject;
+  jo := request.BodyAsJSONValue;
   if not(jo = nil) AND (jo.Count > 0) then
   begin
     routes := TJsonArray.Create;
@@ -363,6 +377,27 @@ begin
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 
+{ Initialize the server parameters }
+class procedure TRedirectController.StartServer;
+begin
+  TRedirectController.Settings := TSettings.Create('.\Server.conf');
+  TRedirectController.Logger :=
+    TLogger.Create(TRedirectController.Settings.logDir,
+    TRedirectController.Settings.logCacheSize);
+  TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
+    'Start the server.');
+  TRedirectController.Route := TRoute.Create(TRedirectController.Logger,
+    TRedirectController.Settings.routeFileName);
+  TRedirectController.Storage := TDMStorage.Create(TRedirectController.Settings,
+    TRedirectController.Logger);
+  TRedirectController.RequestHandler :=
+    TRequestHandler.Create(TRedirectController.Logger,
+    TRedirectController.Settings.requestCacheSize, TRedirectController.Storage);
+  TRedirectController.ImgDir := IncludeTrailingPathDelimiter
+    (TRedirectController.Settings.ImgDir);
+
+end;
+
 procedure TRedirectController.Echo(ctx: TWebContext);
 begin
   Render(ctx.request.params['text']);
@@ -403,30 +438,10 @@ end;
 
 initialization
 
-TRedirectController.Settings := TSettings.Create('.\Server.conf');
-TRedirectController.Logger :=
-  TLogger.Create(TRedirectController.Settings.logDir,
-  TRedirectController.Settings.logCacheSize);
-TRedirectController.Logger.logInfo('TAdvStatsController.initialization',
-  'Start the server.');
-TRedirectController.Route := TRoute.Create(TRedirectController.Logger,
-  TRedirectController.Settings.routeFileName);
-TRedirectController.Storage := TDMStorage.Create(TRedirectController.Settings,
-  TRedirectController.Logger);
-TRedirectController.RequestHandler := TRequestHandler.Create
-  (TRedirectController.Logger, TRedirectController.Settings.requestCacheSize,
-  TRedirectController.Storage);
-TRedirectController.ImgDir := IncludeTrailingPathDelimiter
-  (TRedirectController.Settings.ImgDir);
+TRedirectController.StartServer();
 
 finalization
 
-TRedirectController.Logger.logInfo('TAdvStatsController.finalization',
-  'Shut down the server');
-TRedirectController.RequestHandler := nil;
-TRedirectController.Storage.DisposeOf;
-TRedirectController.Route := nil;
-TRedirectController.Logger := nil;
-TRedirectController.Settings.DisposeOf;
+TRedirectController.StopServer();
 
 end.

@@ -4,7 +4,8 @@ interface
 
 uses
   MVCFramework.RESTAdapter, RedirectServerProxy.interfaces,
-  DUnitX.TestFramework, System.Generics.Collections, Route, InterfaceRoute;
+  DUnitX.TestFramework, System.Generics.Collections, Route, InterfaceRoute,
+  Server.Launcher, Controller.webbase, MainWebModule;
 
 type
 
@@ -25,7 +26,7 @@ type
     [TEST]
     procedure deleteExistingRoute;
     [TEST]
-    [Ignore('The initial number of routes must be known')]
+    [Ignore('convert TJSonObject into TJsonArray first')]
     procedure deleteAllRoute;
 
     [TEST]
@@ -35,8 +36,6 @@ type
     [TEST]
     procedure doesNotOverrideExistingRoute;
     [TEST]
-    [Ignore('Need to understand why the server remembers its state after tear down')
-      ]
     procedure zeroRoutesUponServerStart;
     [TEST]
     [Ignore('Need to understand why the server remembers its state after tear down')
@@ -60,40 +59,52 @@ var
   RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
   RedirectServerResource: IRedirectServerProxy;
 
+const
+  SERVERPORT = 5000;
+
 procedure TRedirectServerTests.Setup;
 begin
   RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-  RedirectServerResource := RESTAdapter.Build('localhost', 5000);
+  RedirectServerResource := RESTAdapter.Build('localhost', SERVERPORT);
 end;
 
 procedure TRedirectServerTests.TearDown;
 begin
   RedirectServerResource := nil;
-  // RESTAdapter.DisposeOf;
 end;
 
 procedure TRedirectServerTests.deleteAllRoute;
+var
+  joIn, joOut: TJSonObject;
 begin
-      // TODO
+  joIn := TJSonObject.Create;
+  joIn.AddPair('route-to-be-deleted1', 'target-to-be-deleted1');
+  RedirectServerResource.addRoutes(joIn.ToString);
+  joOut := RedirectServerResource.getRoutes;
+  Assert.isTrue(joOut.Count > 0);
+  RedirectServerResource.deleteRoutes(joOut.ToString);
+  Assert.AreEqual(0, RedirectServerResource.getRoutes.Count, 'no routes must remain');
+  joIn.DisposeOf;
+  joOut.DisposeOf;
 end;
 
 procedure TRedirectServerTests.deleteExistingRoute;
 var
   joIn, joOut: TJSonObject;
-  routesToDelete: TJSonObject;
+  routesToDelete: TJSonArray;
 begin
   joIn := TJSonObject.Create;
   joIn.AddPair('route-to-be-deleted', 'target-to-be-deleted');
   RedirectServerResource.addRoutes(joIn.ToString);
-  routesToDelete := TJSonObject.Create;
-  routesToDelete.AddPair('0', 'route-to-be-deleted');
+  routesToDelete := TJSonArray.Create;
+  routesToDelete.Add('route-to-be-deleted');
   RedirectServerResource.deleteRoutes(routesToDelete.ToString);
 
   joOut := RedirectServerResource.getRoutes;
 
   Assert.IsNull(joOut.GetValue('route-to-be-deleted'));
-  joIn.disposeOf;
-  routesToDelete.disposeOf;
+  joIn.DisposeOf;
+  routesToDelete.DisposeOf;
 end;
 
 procedure TRedirectServerTests.deleteNonExistingRoute;
@@ -114,8 +125,8 @@ begin
 
   joOut := RedirectServerResource.getRoutes;
   Assert.AreEqual('initial-target', joOut.GetValue('new-campaign/route').Value);
-  joIn1.disposeOf;
-  joIn2.disposeOf;
+  joIn1.DisposeOf;
+  joIn2.DisposeOf;
 end;
 
 procedure TRedirectServerTests.GetRouteAfterAddingSingleRoute;
@@ -127,7 +138,7 @@ begin
   RedirectServerResource.addRoutes(joIn.ToString);
   joOut := RedirectServerResource.getRoutes;
   Assert.AreEqual('target', joOut.GetValue('campaign/route').Value);
-  joIn.disposeOf;
+  joIn.DisposeOf;
 end;
 
 procedure TRedirectServerTests.GetRoutesAfterAdding2Different;
@@ -141,7 +152,7 @@ begin
   joOut := RedirectServerResource.getRoutes;
   Assert.AreEqual('target1', joOut.GetValue('campaign1/route1').Value);
   Assert.AreEqual('target2', joOut.GetValue('campaign2/route2').Value);
-  joIn.disposeOf;
+  joIn.DisposeOf;
 end;
 
 procedure TRedirectServerTests.TestDeleteRoute;
@@ -189,7 +200,7 @@ begin
   RedirectServerResource.addRoutes(joIn.ToString);
   joOut := RedirectServerResource.getRoutes;
   Assert.AreEqual(3, joOut.Count);
-  joIn.disposeOf;
+  joIn.DisposeOf;
 end;
 
 procedure TRedirectServerTests.zeroRoutesUponServerStart;

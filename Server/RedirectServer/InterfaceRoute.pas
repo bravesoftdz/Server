@@ -24,7 +24,7 @@ type
     function extractCampaigns(const routes: TDictionary<String, String>)
       : TStringList;
     function extractCampaign(const str: String; const separ: Char): String;
-
+    procedure Reset();
   end;
 
 implementation

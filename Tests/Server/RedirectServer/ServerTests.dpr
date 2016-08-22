@@ -11,11 +11,13 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   DUnitX.TestFramework,
   Controller.webbase,
-  server.test.init in 'server.test.init.pas',
-  server.test.register in 'server.test.register.pas',
+  Server.test.init in 'server.test.init.pas',
+  Server.test.register in 'server.test.register.pas',
   StorageTests in 'StorageTests.pas',
-  RedirectServerProxy.interfaces in '..\..\..\Server\Common\proxies\RedirectServerProxy.interfaces.pas',
-  RedirectServerDispatcher in '..\..\..\Server\RedirectServer\RedirectServerDispatcher.pas',
+  RedirectServerProxy.interfaces
+    in '..\..\..\Server\Common\proxies\RedirectServerProxy.interfaces.pas',
+  RedirectServerDispatcher
+    in '..\..\..\Server\RedirectServer\RedirectServerDispatcher.pas',
   RouteTests in 'RouteTests.pas',
   RedirectServerTests in 'RedirectServerTests.pas';
 

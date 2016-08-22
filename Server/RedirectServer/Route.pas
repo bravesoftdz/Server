@@ -39,6 +39,7 @@ type
     procedure add(const routes: TJsonObject);
     procedure delete(const routes: TJsonArray);
     destructor Destroy; override;
+    procedure Reset();
   end;
 
 implementation
@@ -56,10 +57,9 @@ end;
 
 destructor TRoute.Destroy;
 begin
-  FMapper.Clear;
-  FMapper.DisposeOf;
+  Reset();
 
-  FCampaignStatuses.Clear;
+  FMapper.DisposeOf;
   FCampaignStatuses.DisposeOf;
   Logger := nil;
   inherited;
@@ -144,6 +144,13 @@ begin
 
 end;
 
+{ Reset the mapper and the campaign statuses }
+procedure TRoute.Reset;
+begin
+  FMapper.Clear;
+  FCampaignStatuses.Clear;
+end;
+
 procedure TRoute.configure(const Logger: ILogger; const fileName: String);
 const
   TAG: String = 'TRoute.configure';
@@ -193,7 +200,7 @@ begin
       campaign := extractCampaign(Route, '/');
       if not(campaignExistsInMapper(campaign)) then
       begin
-          FCampaignStatuses.Remove(campaign);
+        FCampaignStatuses.remove(campaign);
       end;
     end;
 
@@ -338,5 +345,9 @@ begin
     Result.AddPair(key, value);
   end;
 end;
+
+initialization
+
+finalization
 
 end.

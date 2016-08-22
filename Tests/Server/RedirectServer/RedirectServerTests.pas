@@ -12,41 +12,31 @@ type
   [TestFixture]
   TRedirectServerTests = class(TObject)
   private
-    procedure TestDeleteRoute;
+    procedure deleteAllRoutes;
 
   public
     [Setup]
     procedure Setup;
     [TearDown]
     procedure TearDown;
-
     [TEST]
-    [Ignore('to do')]
-    procedure deleteNonExistingRoute;
+    procedure DoesNotChangeRoutesWhenDeletingNonExistingRoute;
     [TEST]
-    procedure deleteExistingRoute;
+    procedure LeavesZeroRoutesWhenDeletingFromEmptyRouteMap;
     [TEST]
-    [Ignore('convert TJSonObject into TJsonArray first')]
-    procedure deleteAllRoute;
-
+    procedure DeleteOneExistingRouteFromTwoAvailable;
+    [TEST]
+    procedure DeleteNoRoutesFromRouteFromThreeAvailable;
     [TEST]
     procedure GetRouteAfterAddingSingleRoute;
     [TEST]
     procedure GetRoutesAfterAdding2Different;
     [TEST]
-    procedure doesNotOverrideExistingRoute;
+    procedure DoesNotOverrideExistingRoute;
     [TEST]
-    procedure zeroRoutesUponServerStart;
+    procedure ZeroRoutesOnceCleaned;
     [TEST]
-    [Ignore('Need to understand why the server remembers its state after tear down')
-      ]
-    procedure threeRoutesAfterLoadingThreeDifferentRoutes;
-
-    // [TEST]
-    procedure TestPingServer;
-    // [TEST]
-    procedure TestGetCampainImage;
-
+    procedure ThreeRoutesAfterLoadingThreeDifferentRoutes;
   end;
 
 implementation
@@ -66,6 +56,7 @@ procedure TRedirectServerTests.Setup;
 begin
   RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
   RedirectServerResource := RESTAdapter.Build('localhost', SERVERPORT);
+  deleteAllRoutes;
 end;
 
 procedure TRedirectServerTests.TearDown;
@@ -73,46 +64,94 @@ begin
   RedirectServerResource := nil;
 end;
 
-procedure TRedirectServerTests.deleteAllRoute;
+{ Deletes all routes. This procedure is created in order to clean up the server
+  routes between different runs. Otherwise, routes used for previous tests might
+  affect other tests. }
+procedure TRedirectServerTests.deleteAllRoutes;
+var
+  joOut: TJSonObject;
+  ja: TJsonArray;
+  item: TJSonPair;
+begin
+  joOut := RedirectServerResource.getRoutes;
+  if joOut.Count > 0 then
+  begin
+    ja := TJsonArray.Create;
+    for item in joOut do
+      ja.Add(item.JsonString.value);
+    RedirectServerResource.deleteRoutes(ja.ToString);
+    joOut.DisposeOf;
+  end;
+end;
+
+{ When the server has three routes and one passes empty list for routes to remove,
+  the initial three routes must remain. }
+procedure TRedirectServerTests.DeleteNoRoutesFromRouteFromThreeAvailable;
 var
   joIn, joOut: TJSonObject;
 begin
   joIn := TJSonObject.Create;
-  joIn.AddPair('route-to-be-deleted1', 'target-to-be-deleted1');
+  joIn.AddPair('route-1/first/', 'first/target');
+  joIn.AddPair('route-2/second/', 'second/target');
+  joIn.AddPair('route-3/third/', 'third/target');
   RedirectServerResource.addRoutes(joIn.ToString);
+  RedirectServerResource.deleteRoutes(TJsonArray.Create.ToString);
   joOut := RedirectServerResource.getRoutes;
-  Assert.isTrue(joOut.Count > 0);
-  RedirectServerResource.deleteRoutes(joOut.ToString);
-  Assert.AreEqual(0, RedirectServerResource.getRoutes.Count, 'no routes must remain');
+  Assert.AreEqual(3, joOut.Count, 'three one route must remain');
+  Assert.AreEqual('first/target', joOut.Values['route-1/first/'].value);
+  Assert.AreEqual('second/target', joOut.Values['route-2/second/'].value);
+  Assert.AreEqual('third/target', joOut.Values['route-3/third/'].value);
   joIn.DisposeOf;
   joOut.DisposeOf;
 end;
 
-procedure TRedirectServerTests.deleteExistingRoute;
+{ When the server has two routes and one gets removed, only the other one must
+  remain. }
+procedure TRedirectServerTests.DeleteOneExistingRouteFromTwoAvailable;
 var
   joIn, joOut: TJSonObject;
-  routesToDelete: TJSonArray;
+  routesToDelete: TJsonArray;
 begin
   joIn := TJSonObject.Create;
-  joIn.AddPair('route-to-be-deleted', 'target-to-be-deleted');
+  joIn.AddPair('routeTo/delete', 'target-to-delete');
+  joIn.AddPair('routeTo/remain', 'target-to-remain');
   RedirectServerResource.addRoutes(joIn.ToString);
-  routesToDelete := TJSonArray.Create;
-  routesToDelete.Add('route-to-be-deleted');
+  routesToDelete := TJsonArray.Create;
+  routesToDelete.Add('routeTo/delete');
   RedirectServerResource.deleteRoutes(routesToDelete.ToString);
-
   joOut := RedirectServerResource.getRoutes;
-
-  Assert.IsNull(joOut.GetValue('route-to-be-deleted'));
+  Assert.AreEqual(1, joOut.Count, 'only one route must remain');
+  Assert.AreEqual('target-to-remain', joOut.Values['routeTo/remain'].value,
+    'routeTo/remain must redirect to target-to-remain');
+  Assert.IsNull(joOut.GetValue('routeTo/delete'),
+    'routeTo/delete must be absent in to route map');
   joIn.DisposeOf;
+  joOut.DisposeOf;
   routesToDelete.DisposeOf;
 end;
 
-procedure TRedirectServerTests.deleteNonExistingRoute;
+{ When the server has two routes and one tries to remove a route that is not among
+  those two, the server must continue to have the two initial routes. }
+procedure TRedirectServerTests.DoesNotChangeRoutesWhenDeletingNonExistingRoute;
+var
+  routesSetUp, routesOutput: TJSonObject;
+  routesToDelete: TJsonArray;
 begin
-
+  deleteAllRoutes;
+  routesSetUp := TJSonObject.Create;
+  routesSetUp.AddPair('route1', 'initial-target1');
+  routesSetUp.AddPair('route2', 'initial-target2');
+  RedirectServerResource.addRoutes(routesSetUp.ToString);
+  routesToDelete := TJsonArray.Create;
+  routesToDelete.Add('route-that-does-not-exist');
+  RedirectServerResource.deleteRoutes(routesToDelete.ToString);
+  routesOutput := RedirectServerResource.getRoutes;
+  Assert.AreEqual(2, routesOutput.Count);
+  Assert.AreEqual('initial-target1', routesOutput.Values['route1'].value);
+  Assert.AreEqual('initial-target2', routesOutput.Values['route2'].value);
 end;
 
-procedure TRedirectServerTests.doesNotOverrideExistingRoute;
+procedure TRedirectServerTests.DoesNotOverrideExistingRoute;
 var
   joIn1, joIn2, joOut: TJSonObject;
 begin
@@ -124,7 +163,7 @@ begin
   RedirectServerResource.addRoutes(joIn2.ToString);
 
   joOut := RedirectServerResource.getRoutes;
-  Assert.AreEqual('initial-target', joOut.GetValue('new-campaign/route').Value);
+  Assert.AreEqual('initial-target', joOut.GetValue('new-campaign/route').value);
   joIn1.DisposeOf;
   joIn2.DisposeOf;
 end;
@@ -137,7 +176,7 @@ begin
   joIn.AddPair('campaign/route', 'target');
   RedirectServerResource.addRoutes(joIn.ToString);
   joOut := RedirectServerResource.getRoutes;
-  Assert.AreEqual('target', joOut.GetValue('campaign/route').Value);
+  Assert.AreEqual('target', joOut.GetValue('campaign/route').value);
   joIn.DisposeOf;
 end;
 
@@ -150,46 +189,24 @@ begin
   joIn.AddPair('campaign2/route2', 'target2');
   RedirectServerResource.addRoutes(joIn.ToString);
   joOut := RedirectServerResource.getRoutes;
-  Assert.AreEqual('target1', joOut.GetValue('campaign1/route1').Value);
-  Assert.AreEqual('target2', joOut.GetValue('campaign2/route2').Value);
+  Assert.AreEqual('target1', joOut.GetValue('campaign1/route1').value);
+  Assert.AreEqual('target2', joOut.GetValue('campaign2/route2').value);
   joIn.DisposeOf;
 end;
 
-procedure TRedirectServerTests.TestDeleteRoute;
+{ When the server has no routes and one tries to remove a route, the server
+  must continue to have no routes }
+procedure TRedirectServerTests.LeavesZeroRoutesWhenDeletingFromEmptyRouteMap;
 var
-  jo: TJSonObject;
+  routesToDelete: TJsonArray;
 begin
-  // TODO
-  // jo := TJSonObject.Create;
-  // jo.AddPair('0', 'aaa/aa');
-  // jo := RedirectServerResource.getRoutes;
-  // Assert.IsTrue(jo.Size > 0, 'routes must contain at least one element');
-  // RedirectServerResource.DeleteRoutes(jo);
-
+  routesToDelete := TJsonArray.Create;
+  routesToDelete.Add('some/route');
+  RedirectServerResource.deleteRoutes(routesToDelete.ToString);
+  Assert.AreEqual(0, RedirectServerResource.getRoutes.Count);
 end;
 
-procedure TRedirectServerTests.TestGetCampainImage;
-var
-  r: String;
-begin
-  // TODO
-  // r := RedirectServerResource.getCampaignImage('venditori',
-  // 'cartellina_natale_2015.jpg');
-
-  // Assert.IsTrue(r.equals('hello'), 'Il metodo non ha riportato hello');
-end;
-
-procedure TRedirectServerTests.TestPingServer;
-var
-  s: string;
-  jo: TResponse;
-begin
-  // r:=NewsWebResource.EchoText('hello');
-  // jo := RedirectServerResource.serverPing;
-  // Assert.IsTrue(not jo.message.isEmpty);
-end;
-
-procedure TRedirectServerTests.threeRoutesAfterLoadingThreeDifferentRoutes;
+procedure TRedirectServerTests.ThreeRoutesAfterLoadingThreeDifferentRoutes;
 var
   joIn, joOut: TJSonObject;
 begin
@@ -203,10 +220,11 @@ begin
   joIn.DisposeOf;
 end;
 
-procedure TRedirectServerTests.zeroRoutesUponServerStart;
+procedure TRedirectServerTests.ZeroRoutesOnceCleaned;
 var
   joOut: TJSonObject;
 begin
+  deleteAllRoutes;
   joOut := RedirectServerResource.getRoutes;
   Assert.AreEqual(0, joOut.Count, 'the server must have no routes on start');
 end;

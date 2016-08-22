@@ -224,21 +224,23 @@ end;
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
 var
   routes: TJsonArray;
-  jo: TJSONValue;
+  jo: TJsonArray;
   item: TJSOnPair;
   request: TMVCWebRequest;
 begin
   request := ctx.request;
-  jo := request.BodyAsJSONValue;
+  if request.BodyAsJSONValue is TJsonArray then
+    jo := request.BodyAsJSONValue as TJsonArray;
   if not(jo = nil) AND (jo.Count > 0) then
   begin
-    routes := TJsonArray.Create;
-    for item in jo do
-    begin
-      routes.add(item.JsonValue.Value)
-    end;
-    Route.delete(routes);
-    routes.DisposeOf;
+    Route.delete(jo);
+//    routes := TJsonArray.Create;
+//    for item in jo do
+//    begin
+//      routes.add(item.JsonValue.Value)
+//    end;
+//    Route.delete(routes);
+//    routes.DisposeOf;
   end;
 end;
 

@@ -2,6 +2,9 @@ unit InterfaceLogger;
 
 interface
 
+uses
+  System.JSON;
+
 type
   ILogger = interface
     ['{0020D75E-C10E-466B-AB6B-3DB8506EE126}']
@@ -11,6 +14,7 @@ type
     procedure logInfo(const source, msg: String);
     procedure flushCache;
     procedure configure(const logDir: String; const logCacheSize: Integer);
+    function getStatus(): TJsonObject;
 
   end;
 

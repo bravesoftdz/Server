@@ -2,7 +2,7 @@ unit Logger;
 
 interface
 
-uses InterfaceLogger, System.Classes, System.Generics.Collections;
+uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON;
 
 type
   TLogger = class(TInterfacedObject, ILogger)
@@ -38,6 +38,7 @@ type
     procedure logInfo(const source, msg: String);
     procedure flushCache;
     procedure configure(const LogDir: String; const logCacheSize: Integer);
+    function getStatus(): TJsonObject;
   end;
 
 implementation
@@ -193,6 +194,16 @@ begin
   finally
     TMonitor.Exit(FLockObject);
   end;
+end;
+
+{ Return the status of the logger }
+function TLogger.getStatus: TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.AddPair('logger name', 'Logger');
+  Result.AddPair('logger folder', LogDir);
+  Result.AddPair('max cache size', MaxCacheSize.ToString);
+  Result.AddPair('current size', CurrentSize.ToString);
 end;
 
 end.

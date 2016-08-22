@@ -76,6 +76,10 @@ type
 
     { Logger related commands: start }
 
+    [MVCPath('/logger/status')]
+    [MVCHTTPMethod([httpGET])]
+    procedure getLoggerStatus(ctx: TWebContext);
+
     { Logger related commands: end }
 
     [MVCPath('/statistics/commit')]
@@ -233,6 +237,22 @@ end;
 procedure TRedirectController.getImage(ctx: TWebContext);
 begin
   SendImage(ctx.request.params['img'], ctx);
+end;
+
+{ Return the logger status. If no logger is set, return a json object
+  with a single pair whose key is "logger" and its value is "none" }
+procedure TRedirectController.getLoggerStatus(ctx: TWebContext);
+var
+  jo: TJsonObject;
+begin
+  if Logger = nil then
+  begin
+    jo := TJsonObject.Create;
+    jo.AddPair('logger', 'none');
+  end
+  else
+    jo := Logger.getStatus();
+  Render(jo);
 end;
 
 procedure TRedirectController.getPausedCampaigns(ctx: TWebContext);

@@ -58,7 +58,6 @@ end;
 destructor TRoute.Destroy;
 begin
   Reset();
-
   FMapper.DisposeOf;
   FCampaignStatuses.DisposeOf;
   Logger := nil;
@@ -191,6 +190,8 @@ var
   routeJSONValue: TJSONValue;
   Route, campaign: String;
 begin
+  if (routes = nil) OR (routes.Count = 0) then
+    Exit();
   for routeJSONValue in routes do
   begin
     Route := routeJSONValue.value;

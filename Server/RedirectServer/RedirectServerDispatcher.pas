@@ -220,28 +220,14 @@ begin
 
 end;
 
-/// delete routes
+{ Delete routes encoded as a json array in the request body }
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
 var
-  routes: TJsonArray;
-  jo: TJsonArray;
-  item: TJSOnPair;
   request: TMVCWebRequest;
 begin
   request := ctx.request;
   if request.BodyAsJSONValue is TJsonArray then
-    jo := request.BodyAsJSONValue as TJsonArray;
-  if not(jo = nil) AND (jo.Count > 0) then
-  begin
-    Route.delete(jo);
-//    routes := TJsonArray.Create;
-//    for item in jo do
-//    begin
-//      routes.add(item.JsonValue.Value)
-//    end;
-//    Route.delete(routes);
-//    routes.DisposeOf;
-  end;
+    Route.delete(request.BodyAsJSONValue as TJsonArray);
 end;
 
 procedure TRedirectController.getImage(ctx: TWebContext);

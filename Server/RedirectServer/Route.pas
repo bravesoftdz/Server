@@ -40,6 +40,7 @@ type
     procedure delete(const routes: TJsonArray);
     destructor Destroy; override;
     procedure Reset();
+    function getStatus(): TJsonObject;
   end;
 
 implementation
@@ -347,6 +348,16 @@ begin
   end;
 end;
 
+{ Return status of the router }
+function TRoute.getStatus: TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  if Logger = nil then
+    Result.AddPair('logger', TJsonFalse.Create)
+  else
+    Result.AddPair('logger', TJsonTrue.Create);
+  Result.AddPair('routes', TJSonNumber.Create(FMapper.Count));
+end;
 
 initialization
 

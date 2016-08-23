@@ -30,6 +30,7 @@ type
       const params: TDictionary<String, String>): String;
     class procedure StartServer();
     class procedure StopServer();
+    function getStatus(): TJsonObject;
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -81,6 +82,14 @@ type
     procedure getLoggerStatus(ctx: TWebContext);
 
     { Logger related commands: end }
+
+    { Server related commands: start }
+
+    [MVCPath('/server/status')]
+    [MVCHTTPMethod([httpGET])]
+    procedure getServerStatus(ctx: TWebContext);
+
+    { Server related commands: end }
 
     [MVCPath('/statistics/commit')]
     [MVCHTTPMethod([httpPUT])]
@@ -279,6 +288,26 @@ end;
 procedure TRedirectController.getRoutes(ctx: TWebContext);
 begin
   Render(Route.getRoutes);
+end;
+
+{ Show the server status and statuses of its logger, router and storage (if any) }
+procedure TRedirectController.getServerStatus(ctx: TWebContext);
+var
+  status: TJsonObject;
+begin
+  status := getStatus();
+  if not(Logger = nil) then
+    status.AddPair('logger status', Logger.getStatus);
+  if not(Route = nil) then
+    status.AddPair('router status', Route.getStatus);
+  Render(status);
+end;
+
+{ Return json object containing parameters related to the server }
+function TRedirectController.getStatus: TJsonObject;
+begin
+  Result := TJsonObject.Create;
+  Result.AddPair('image folder', ImgDir);
 end;
 
 procedure TRedirectController.getCampaignImage(ctx: TWebContext);

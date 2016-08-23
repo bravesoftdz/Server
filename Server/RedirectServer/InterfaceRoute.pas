@@ -25,6 +25,7 @@ type
       : TStringList;
     function extractCampaign(const str: String; const separ: Char): String;
     procedure Reset();
+    function getStatus() : TJsonObject;
 
   end;
 

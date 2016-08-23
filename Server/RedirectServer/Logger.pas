@@ -202,8 +202,8 @@ begin
   Result := TJsonObject.Create;
   Result.AddPair('logger name', 'Logger');
   Result.AddPair('logger folder', LogDir);
-  Result.AddPair('max cache size', MaxCacheSize.ToString);
-  Result.AddPair('current size', CurrentSize.ToString);
+  Result.AddPair('max cache size', TJsonNumber.Create(MaxCacheSize));
+  Result.AddPair('current size', TJsonNumber.Create(CurrentSize));
 end;
 
 end.

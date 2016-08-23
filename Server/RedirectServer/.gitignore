@@ -4,4 +4,5 @@ __history/
 __recovery/
 *.local
 *.identcache
+*.stat
 AdvLiteServer.mes

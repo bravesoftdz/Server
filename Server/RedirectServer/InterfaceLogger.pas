@@ -15,6 +15,7 @@ type
     procedure flushCache;
     procedure configure(const logDir: String; const logCacheSize: Integer);
     function getStatus(): TJsonObject;
+    procedure setProperties(const Params: TJsonObject);
 
   end;
 

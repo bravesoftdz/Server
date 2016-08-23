@@ -81,6 +81,10 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getLoggerStatus(ctx: TWebContext);
 
+    [MVCPath('/logger/set')]
+    [MVCHTTPMethod([httpPUT])]
+    procedure setLoggerProperty(ctx: TWebContext);
+
     { Logger related commands: end }
 
     { Server related commands: start }
@@ -412,6 +416,20 @@ begin
   filePath := ImgDir + path;
   if fileExists(filePath) then
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
+end;
+
+{ Setter for the logger properties. The properties must be
+  passed as a json object. }
+procedure TRedirectController.setLoggerProperty(ctx: TWebContext);
+var
+  request: TMVCWebRequest;
+  params: TJsonObject;
+begin
+  if Logger = nil then
+    Exit();
+  request := ctx.request;
+  params := request.BodyAsJSONObject();
+  Logger.setProperies(params);
 end;
 
 { Initialize the server parameters }

@@ -39,6 +39,7 @@ type
     procedure flushCache;
     procedure configure(const LogDir: String; const logCacheSize: Integer);
     function getStatus(): TJsonObject;
+    procedure setProperties(const params: TJsonObject);
   end;
 
 implementation
@@ -88,6 +89,22 @@ begin
   log(LEVEL_WARNING, source, msg);
 end;
 
+{ Set the properties passed as json object. All unrecognized propertires
+  are ignored. }
+procedure TLogger.setProperties(const params: TJsonObject);
+var
+  MaxCacheSize: Integer;
+  LogDir: String;
+begin
+  flushCache();
+  MaxCacheSize := TJSONNumber.Create(params.Values['max cache size']);
+  if MaxCacheSize >= 0 then
+    Self.MaxCacheSize := MaxCacheSize;
+  LogDir := params.Values['logger folder'].Value;
+  if not(LogDir = nil) then
+    Self.LogDir := LogDir;
+end;
+
 procedure TLogger.log(const level, source, msg: String);
 var
   currentTime: TDateTime;
@@ -118,7 +135,7 @@ procedure TLogger.configure(const LogDir: String; const logCacheSize: Integer);
 const
   TAG: String = 'TLogger.configure';
 begin
-  self.LogDir := LogDir;
+  Self.LogDir := LogDir;
   MaxCacheSize := logCacheSize;
   logInfo(TAG, 'The loggers settings: folder ' + LogDir + ', buffer size ' +
     inttostr(logCacheSize));
@@ -202,8 +219,8 @@ begin
   Result := TJsonObject.Create;
   Result.AddPair('logger name', 'Logger');
   Result.AddPair('logger folder', LogDir);
-  Result.AddPair('max cache size', TJsonNumber.Create(MaxCacheSize));
-  Result.AddPair('current size', TJsonNumber.Create(CurrentSize));
+  Result.AddPair('max cache size', TJSONNumber.Create(MaxCacheSize));
+  Result.AddPair('current size', TJSONNumber.Create(CurrentSize));
 end;
 
 end.

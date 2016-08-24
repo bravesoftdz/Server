@@ -429,7 +429,7 @@ begin
     Exit();
   request := ctx.request;
   params := request.BodyAsJSONObject();
-  Logger.setProperies(params);
+  Logger.setProperties(params);
 end;
 
 { Initialize the server parameters }

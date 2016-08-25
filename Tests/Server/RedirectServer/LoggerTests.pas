@@ -179,7 +179,7 @@ end;
 
 procedure TLoggerTests.Setup;
 begin
-  aTLogger := TLogger.Create('foo', 0);
+  aTLogger := TLogger.Create();
 end;
 
 procedure TLoggerTests.TearDown;

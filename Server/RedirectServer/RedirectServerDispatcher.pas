@@ -436,9 +436,7 @@ end;
 class procedure TRedirectController.StartServer;
 begin
   TRedirectController.Settings := TSettings.Create('.\Server.conf');
-  TRedirectController.Logger :=
-    TLogger.Create(TRedirectController.Settings.logDir,
-    TRedirectController.Settings.logCacheSize);
+  TRedirectController.Logger := TLogger.Create;
   TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
     'Start the server.');
   TRedirectController.Route := TRoute.Create(TRedirectController.Logger,

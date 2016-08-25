@@ -2,7 +2,8 @@ unit Logger;
 
 interface
 
-uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON;
+uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON,
+  System.SysUtils;
 
 type
   TLogger = class(TInterfacedObject, ILogger)
@@ -24,7 +25,13 @@ type
   const
     LEVEL_INFO: String = 'info';
 
-    /// token corresponding to the MaxCacheSize property
+    /// <summary>path name pattern of the log file.
+    /// The pat is relative with respect to LogDir. </summary>
+  const
+    FILE_PATH_PATTERN: String = 'yyyy' + PathDelim + 'mm' + PathDelim +
+      'yyyy_mm_dd';
+
+    /// <summary>token corresponding to the MaxCacheSize property</summary>
   const
     MAX_CACHE_SIZE_TOKEN: String = 'max cache size';
 
@@ -40,7 +47,20 @@ type
     procedure setLogDir(const dir: String);
 
   public
-    constructor Create(const logDirName: String; const logCacheSize: Integer);
+    /// <summary>Constructor</summary>
+    /// <param name="DirName">name of directory in which the log files are saved.
+    /// It can contain only alphanumeric symbols, underscore and the path delimiter </param>
+    /// <param name="MaxCacheSize">max number of records to maintain in memory
+    /// before saving in a file </param>
+    constructor Create(const DirName: String;
+      const MaxCacheSize: Integer); overload;
+    /// <summary>Constructor that sets only the maximal cache size to the default value
+    /// and does not set a directory in which to save the log files.</summary>
+    /// <param name="DirName">name of directory in which the log files are saved.
+    /// It can contain only alphanumeric symbols, underscore and the path delimiter </param>
+    /// <param name="MaxCacheSize">max number of records to maintain in memory
+    /// before saving in a file </param>
+    constructor Create(); overload;
     destructor Destroy; override;
 
     procedure log(const level, source, msg: String);
@@ -49,7 +69,7 @@ type
     procedure logException(const source, msg: String);
     procedure logInfo(const source, msg: String);
     procedure flushCache;
-    procedure configure(const LogDir: String; const logCacheSize: Integer);
+    procedure configure(const LogDir: String; const MaxCacheSize: Integer);
     function getStatus(): TJsonObject;
     procedure setProperties(const params: TJsonObject);
   end;
@@ -57,8 +77,7 @@ type
 implementation
 
 uses
-  System.IOUtils, System.DateUtils,
-  System.SysUtils, System.RegularExpressions;
+  System.IOUtils, System.DateUtils, System.RegularExpressions;
 
 var
   FLockObject: TObject;
@@ -103,7 +122,6 @@ end;
 
 procedure TLogger.setLogDir(const dir: String);
 var
-  MaxCacheSize: Integer;
   LogDirTmp: String;
   regex: TRegEx;
 begin
@@ -128,7 +146,7 @@ end;
 /// properties are ignored. </summary>
 procedure TLogger.setProperties(const params: TJsonObject);
 begin
-   flushCache();
+  flushCache();
   if (params.GetValue(MAX_CACHE_SIZE_TOKEN) is TJSONNumber) then
     setMaxCacheSize(StrToIntDef(params.Values[MAX_CACHE_SIZE_TOKEN].Value, -1));
   if not(params.Values[LOG_DIR_TOKEN] = nil) then
@@ -142,8 +160,7 @@ var
   fullPath, FullMessage: String;
 begin
   currentTime := Now;
-  fullPath := LogDir + PathDelim + formatdatetime('yyyy' + PathDelim + 'mm' +
-    PathDelim + 'yyyy_mm_dd', currentTime);
+  fullPath := formatdatetime(FILE_PATH_PATTERN, currentTime);
 
   TMonitor.Enter(FLockObject);
 
@@ -161,22 +178,30 @@ begin
     flushCache();
 end;
 
-procedure TLogger.configure(const LogDir: String; const logCacheSize: Integer);
+procedure TLogger.configure(const LogDir: String; const MaxCacheSize: Integer);
 const
   TAG: String = 'TLogger.configure';
 begin
   Self.LogDir := LogDir;
-  MaxCacheSize := logCacheSize;
-  logInfo(TAG, 'The loggers settings: folder ' + LogDir + ', buffer size ' +
-    inttostr(logCacheSize));
+  Self.MaxCacheSize := MaxCacheSize;
+  logInfo(TAG, 'The logger settings: folder ' + LogDir + ', buffer size ' +
+    inttostr(MaxCacheSize));
 end;
 
-constructor TLogger.Create(const logDirName: String;
-  const logCacheSize: Integer);
+constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
+begin
+  Create;
+  configure(DirName, MaxCacheSize);
+end;
+
+constructor TLogger.Create;
+const
+  TAG: String = 'TLogger.Create';
 begin
   Cache := TDictionary<String, TStringList>.Create;
   FLockObject := TObject.Create;
-  configure(logDirName, logCacheSize);
+  Self.MaxCacheSize := 10;
+  logInfo(TAG, 'The logger is created.');
 end;
 
 destructor TLogger.Destroy;
@@ -192,30 +217,33 @@ end;
 
 procedure TLogger.flushCache;
 begin
-  // TThread.CreateAnonymousThread(flushCacheSync).Start;
+  TThread.CreateAnonymousThread(flushCacheSync).Start;
 end;
 
 procedure TLogger.flushCacheSync;
 var
-  line: String;
+  line, fullPath: String;
   item: TPair<String, TStringList>;
   dirPath, FileName: String;
   writer: TStreamWriter;
 begin
+  if LogDir.IsEmpty then
+    Exit();
   try
     TMonitor.Enter(FLockObject);
     for item in Cache do
     begin
       // try
-      dirPath := ExtractFileDir(item.Key);
-      FileName := extractfilename(item.Key);
+      fullPath := LogDir + PathDelim + item.Key;
+      dirPath := ExtractFileDir(fullPath);
+      FileName := extractfilename(fullPath);
       if not DirectoryExists(dirPath) then
         TDirectory.CreateDirectory(dirPath);
 
-      if FileExists(item.Key) then
-        writer := TFile.AppendText(item.Key)
+      if FileExists(fullPath) then
+        writer := TFile.AppendText(fullPath)
       else
-        writer := TFile.CreateText(item.Key);
+        writer := TFile.CreateText(fullPath);
       try
         writer.AutoFlush := True;
         // Flush automatically after write

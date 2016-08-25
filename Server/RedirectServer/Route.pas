@@ -12,11 +12,11 @@ uses
 type
   TRoute = class(TInterfacedObject, IRoute)
   private
-    { A mapping of the routes }
+    /// <summary> A mapping of the routes </summary>
     FMapper: TDictionary<String, String>;
-    { a map of campaign statuses: true for active, false for paused }
+    /// <summary>a map of campaign statuses: true for active, false for paused </summary>
     FCampaignStatuses: TDictionary<String, Boolean>;
-    Logger: ILogger;
+    FLogger: ILogger;
     function campaignExistsInMapper(const campaign: String): Boolean;
 
   public
@@ -30,6 +30,8 @@ type
     procedure markCampaignsAsActive(const campaigns: TStringList);
     function extractCampaigns(const routes: TDictionary<String, String>)
       : TStringList;
+    /// <summary>Splits a string using a separator and returns the first
+    /// non-empty substring (if exists)</summary>
     function extractCampaign(const str: String; const separ: Char): String;
     function getRoutes(): TJsonObject;
     procedure setCampaignStatus(const campaign: String;
@@ -41,6 +43,8 @@ type
     destructor Destroy; override;
     procedure Reset();
     function getStatus(): TJsonObject;
+    /// <summary> logger setter</summary>
+    procedure setLogger(const Logger: ILogger);
   end;
 
 implementation
@@ -61,11 +65,10 @@ begin
   Reset();
   FMapper.DisposeOf;
   FCampaignStatuses.DisposeOf;
-  Logger := nil;
+  FLogger := nil;
   inherited;
 end;
 
-{ Splits a string using a separator and returns the first non-empty substring (if exists) }
 function TRoute.extractCampaign(const str: String; const separ: Char): String;
 var
   pieces: TArray<String>;
@@ -155,7 +158,7 @@ procedure TRoute.configure(const Logger: ILogger; const fileName: String);
 const
   TAG: String = 'TRoute.configure';
 begin
-  self.Logger := Logger;
+  self.FLogger := Logger;
   loadRoutesFromFile(fileName);
 end;
 
@@ -228,8 +231,8 @@ begin
     itemNumber := Length(Items);
     if (itemNumber = 2) then
       Result.add(Items[0], Items[1])
-    else
-      Logger.logInfo(TAG, 'line "' + line + '" seems to contain ' +
+    else if assigned(FLogger) then
+      FLogger.logInfo(TAG, 'line "' + line + '" seems to contain ' +
         IntToStr(itemNumber) + ' entries (expected: 2)');
   end;
   Items := nil;
@@ -248,8 +251,8 @@ var
 begin
   if not(fileExists(fileName)) then
   begin
-    if not(Logger = nil) then
-      Logger.logInfo(TAG, 'can not load the routes because the file "' +
+    if assigned(FLogger) then
+      FLogger.logInfo(TAG, 'can not load the routes because the file "' +
         fileName + '" does not exist.');
     Exit
   end;
@@ -279,7 +282,8 @@ begin
   except
     on E: Exception do
     begin
-      Logger.logException(TAG, E.Message);
+      if assigned(FLogger) then
+        FLogger.logException(TAG, E.Message);
     end;
   end;
 end;
@@ -293,6 +297,11 @@ procedure TRoute.setCampaignStatus(const campaign: String;
 begin
   if (FCampaignStatuses.containsKey(campaign)) then
     FCampaignStatuses.Items[campaign] := status;
+end;
+
+procedure TRoute.setLogger(const Logger: ILogger);
+begin
+  self.FLogger := Logger;
 end;
 
 { Reset the previous routes and copy the new ones one-by-one from given maps
@@ -352,10 +361,7 @@ end;
 function TRoute.getStatus: TJsonObject;
 begin
   Result := TJsonObject.Create;
-  if Logger = nil then
-    Result.AddPair('logger', TJsonFalse.Create)
-  else
-    Result.AddPair('logger', TJsonTrue.Create);
+  Result.AddPair('logger', TJSonBool.Create(assigned(FLogger)));
   Result.AddPair('routes', TJSonNumber.Create(FMapper.Count));
 end;
 

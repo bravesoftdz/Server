@@ -466,7 +466,7 @@ end;
 
 procedure TRouteTests.Setup;
 begin
-  aTRoute := TRoute.Create(nil, '');
+  aTRoute := TRoute.Create;
 end;
 
 procedure TRouteTests.TearDown;

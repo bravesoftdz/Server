@@ -37,12 +37,7 @@ type
     procedure setCampaignStatus(const campaign: String;
       const status: Boolean); overload;
     procedure configure(const Logger: ILogger; const fileName: String);
-    /// <summary> Deprecated.
-    /// Do not use it, because it loads routes from a file and hence
-    /// breaks the RESTful approach </summary>
-    constructor Create(const Logger: ILogger;
-      const routeFileName: String); overload;
-    constructor Create();  overload;
+    constructor Create();
     procedure add(const routes: TJsonObject);
     procedure delete(const routes: TJsonArray);
     destructor Destroy; override;
@@ -64,12 +59,12 @@ begin
   FCampaignStatuses := TDictionary<String, Boolean>.Create;
 end;
 
-constructor TRoute.Create(const Logger: ILogger; const routeFileName: String);
-begin
-  Raise Exception.Create('Deprecated constructor is used!');
-  Create();
-  configure(Logger, routeFileName);
-end;
+//constructor TRoute.Create(const Logger: ILogger; const routeFileName: String);
+//begin
+//  Raise Exception.Create('Deprecated constructor is used!');
+//  Create();
+//  configure(Logger, routeFileName);
+//end;
 
 destructor TRoute.Destroy;
 begin

@@ -59,13 +59,6 @@ begin
   FCampaignStatuses := TDictionary<String, Boolean>.Create;
 end;
 
-//constructor TRoute.Create(const Logger: ILogger; const routeFileName: String);
-//begin
-//  Raise Exception.Create('Deprecated constructor is used!');
-//  Create();
-//  configure(Logger, routeFileName);
-//end;
-
 destructor TRoute.Destroy;
 begin
   Reset();

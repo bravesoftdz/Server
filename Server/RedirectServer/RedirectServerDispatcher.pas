@@ -441,11 +441,16 @@ begin
     'Start the server.');
   TRedirectController.Route := TRoute.Create;
   TRedirectController.Route.setLogger(TRedirectController.Logger);
-  TRedirectController.Storage := TDMStorage.Create(TRedirectController.Settings,
-    TRedirectController.Logger);
-  TRedirectController.RequestHandler :=
-    TRequestHandler.Create(TRedirectController.Logger,
-    TRedirectController.Settings.requestCacheSize, TRedirectController.Storage);
+
+  TRedirectController.Storage := TDMStorage.Create(nil);
+  TRedirectController.Storage.setLogger(TRedirectController.Logger);
+  TRedirectController.Storage.setSettings(TRedirectController.Settings);
+
+  TRedirectController.RequestHandler := TRequestHandler.Create;
+  TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
+  TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
+  TRedirectController.RequestHandler.CacheSize := TRedirectController.Settings.requestCacheSize;
+
   TRedirectController.ImgDir := IncludeTrailingPathDelimiter
     (TRedirectController.Settings.ImgDir);
 

@@ -41,10 +41,13 @@ type
       const Data: TDictionary<String, Integer>): String;
   private
   var
-    Logger: ILogger;
+    /// <summary> [Optional] Reference to a logger</summary>
+    FLogger: ILogger;
 
   var
-    Settings: TSettings;
+    FSettings: TSettings;
+    /// <summary> Constructs an insert-into-table statement for a table with a given name and
+    /// column values</summary>
     function insertStatement(const tableName: String;
       const Data: TDictionary<String, String>): String;
 
@@ -60,10 +63,13 @@ type
 
   public
     function save(const items: TObjectList<TRequestType>): Boolean;
-    procedure loadSettings(const Settings: TSettings);
-    constructor Create(const Settings: TSettings; const Logger: ILogger);
+    procedure setSettings(const Settings: TSettings);
+    // constructor Create(const Settings: TSettings; const Logger: ILogger);
     procedure configure(const Settings: TSettings; const Logger: ILogger);
     destructor Destroy; override;
+    /// <summary> logger setter </summary>
+    procedure setLogger(const Logger: ILogger);
+
   end;
 
 var
@@ -82,37 +88,39 @@ uses
 { TDataModule1 }
 destructor TDMStorage.Destroy;
 begin
-  Logger := nil;
-  Settings := nil;
+  FLogger := nil;
+  FSettings := nil;
   inherited;
 end;
 
-constructor TDMStorage.Create(const Settings: TSettings; const Logger: ILogger);
-begin
-  configure(Settings, Logger);
-  inherited Create(nil);
-end;
+// constructor TDMStorage.Create(const Settings: TSettings; const Logger: ILogger);
+// begin
+// configure(Settings, Logger);
+// inherited Create(nil);
+// end;
 
 procedure TDMStorage.configure(const Settings: TSettings;
   const Logger: ILogger);
 begin
-  self.Settings := Settings;
-  self.Logger := Logger;
+  self.FSettings := Settings;
+  self.FLogger := Logger;
 end;
 
 procedure TDMStorage.DataModuleCreate(Sender: TObject);
 const
   TAG: String = 'TDMStorage.DataModuleCreate';
 begin
-  FDManager.ConnectionDefFileName := Settings.dbConnFileName;
+  if not(Assigned(FSettings)) then
+    Exit();
+  FDManager.ConnectionDefFileName := FSettings.dbConnFileName;
   FDManager.ConnectionDefFileAutoLoad := True;
   try
-    FDBConn.ConnectionDefName := Settings.dbConnDefName;
+    FDBConn.ConnectionDefName := FSettings.dbConnDefName;
     FDBConn.Connected := True;
   except
     on e: Exception do
     begin
-      Logger.logException(TAG, e.Message);
+      FLogger.logException(TAG, e.Message);
     end;
   end;
 end;
@@ -122,14 +130,16 @@ begin
   FDBConn.Connected := False;
 end;
 
-procedure TDMStorage.loadSettings(const Settings: TSettings);
-
+procedure TDMStorage.setSettings(const Settings: TSettings);
 begin
-
+  self.FSettings := Settings;
 end;
 
-{ Constructs an insert-into-table statement for a table with a given name and
-  column values }
+procedure TDMStorage.setLogger(const Logger: ILogger);
+begin
+  self.FLogger := Logger;
+end;
+
 function TDMStorage.insertStatement(const tableName: String;
   const Data: TDictionary<String, String>): String;
 const
@@ -171,7 +181,7 @@ var
 begin
   Result := False;
   if not(FDBConn.Connected) then
-    Logger.logWarning(TAG, 'The database connection is missing.')
+    FLogger.logWarning(TAG, 'The database connection is missing.')
   else
   begin
     summary := TDictionary < String, TDictionary < String, Integer >>.Create;
@@ -201,7 +211,7 @@ begin
       on e: Exception do
       begin
         FDBConn.Rollback;
-        Logger.logException('TDMStorage.insertRedirect', e.Message);
+        FLogger.logException('TDMStorage.insertRedirect', e.Message);
         raise;
       end;
     end;
@@ -246,7 +256,7 @@ var
   statement, fieldName: String;
 begin
   if Data.Count = 0 then
-    exit;
+    Exit;
   fieldNames := TStringList.Create;
   fieldValues := TStringList.Create;
   fieldNames.Add('`campaign`');
@@ -274,7 +284,7 @@ var
   tableName: String;
   rowFetch: Variant;
 begin
-  tableName := Settings.dbSummaryTableName;
+  tableName := FSettings.dbSummaryTableName;
   for line in summary.keys do
   begin
     rowFetch := FDBConn.ExecSQLScalar('SELECT * FROM ' + tableName +

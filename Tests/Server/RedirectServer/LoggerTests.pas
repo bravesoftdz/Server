@@ -53,7 +53,7 @@ type
     [TestCase('Do not set if a dot is present', 'aaa\..\')]
     [TestCase('Do not set if it is empty', '')]
     [TestCase('Do not set if it is \\\', '\\\')]
-    procedure doNotSetImageDirWithIllegalSymbols(const illegalDirName: String);
+    procedure doNotSetDirNameWithIllegalSymbols(const illegalDirName: String);
 
     /// <summary>  When the json object containing the parameters, contains max
     /// cache size property equal to 5, then this value must be set </summary>
@@ -93,7 +93,7 @@ uses System.JSON, System.SysUtils;
 
 { TLoggerTests }
 
-procedure TLoggerTests.doNotSetImageDirWithIllegalSymbols
+procedure TLoggerTests.doNotSetDirNameWithIllegalSymbols
   (const illegalDirName: String);
 var
   paramIn, paramOut: TJsonObject;

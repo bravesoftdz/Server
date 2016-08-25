@@ -14,30 +14,44 @@ uses
 type
   IRequestHandler = interface
     ['{ED36121D-23E8-45FA-8F19-CF46EAB85E9F}']
+
     procedure Archive(const data: TRequestType);
     procedure Commit;
     function Count: Integer;
     procedure configure(const Logger: ILogger; const CacheSize: Integer;
       const Storage: TDMStorage);
+    procedure SetStorage(const St: TDMStorage);
+    procedure SetLogger(const Logger: ILogger);
+    procedure SetMaxCacheSize(MaxcacheSize: Integer);
+
+    property Storage: TDMStorage write SetStorage;
+    property Logger: ILogger write SetLogger;
+    property CacheSize: Integer write SetMaxCacheSize;
   end;
 
   TRequestHandler = class(TInterfacedObject, IRequestHandler)
   private
     FRequests: TObjectList<TRequestType>;
-    Logger: ILogger;
-    BufferSize: Integer;
-    Storage: TDMStorage;
+    FLogger: ILogger;
+    FMaxCacheSize: Integer;
+    FStorage: TDMStorage;
 
   public
     procedure Archive(const data: TRequestType);
     procedure Commit;
     function Count: Integer;
-    constructor Create(const Logger: ILogger; const CacheSize: Integer;
-      const Storage: TDMStorage);
+    constructor Create;
 
     procedure configure(const Logger: ILogger; const CacheSize: Integer;
       const Storage: TDMStorage);
     destructor Destroy; override;
+    procedure SetStorage(const St: TDMStorage);
+    procedure SetLogger(const Logger: ILogger);
+    procedure SetMaxCacheSize(MaxCacheSize: Integer);
+
+    property Storage: TDMStorage write SetStorage;
+    property Logger: ILogger write SetLogger;
+    property CacheSize: Integer write SetMaxCacheSize;
   end;
 
 implementation
@@ -52,29 +66,43 @@ var
 
   { TRequestHandler }
 
-constructor TRequestHandler.Create(const Logger: ILogger;
-  const CacheSize: Integer; const Storage: TDMStorage);
+constructor TRequestHandler.Create;
 begin
   FRequests := TObjectList<TRequestType>.Create;
   FLockObject := TObject.Create;
-  configure(Logger, CacheSize, Storage);
 end;
 
 destructor TRequestHandler.Destroy;
 begin
-  Storage := nil;
-  Logger := nil;
+  FStorage := nil;
+  FLogger := nil;
   FLockObject.DisposeOf;
   FRequests.DisposeOf;
   inherited;
 end;
 
+procedure TRequestHandler.SetLogger(const Logger: ILogger);
+begin
+  FLogger := Logger;
+end;
+
+procedure TRequestHandler.SetMaxCacheSize(MaxCacheSize: Integer);
+begin
+  if MaxCacheSize >= 0 then
+    FMaxCacheSize := MaxCacheSize;
+end;
+
+procedure TRequestHandler.SetStorage(const St: TDMStorage);
+begin
+  FStorage := St;
+end;
+
 procedure TRequestHandler.configure(const Logger: ILogger;
   const CacheSize: Integer; const Storage: TDMStorage);
 begin
-  BufferSize := CacheSize;
-  self.Logger := Logger;
-  self.Storage := Storage;
+  FMaxCacheSize := CacheSize;
+  self.FLogger := Logger;
+  self.FStorage := Storage;
 end;
 
 function TRequestHandler.Count;
@@ -87,7 +115,7 @@ begin
   TMonitor.Enter(FLockObject);
   try
     FRequests.Add(data);
-    if FRequests.Count > BufferSize then
+    if FRequests.Count > FMaxCacheSize then
     begin
       Commit();
     end;
@@ -105,16 +133,16 @@ begin
   TMonitor.Enter(FLockObject);
   try
     try
-      outcome := Storage.save(FRequests);
+      outcome := FStorage.save(FRequests);
       if outcome then
         FRequests.Clear
       else
-        Logger.logWarning(TAG,
+        FLogger.logWarning(TAG,
           'Saving of the statistics to the DB has been postponed.');
     except
       on e: Exception do
       begin
-        Logger.logException(TAG, e.Message);
+        FLogger.logException(TAG, e.Message);
       end;
     end;
   finally

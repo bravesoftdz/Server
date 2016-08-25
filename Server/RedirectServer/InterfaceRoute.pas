@@ -28,6 +28,9 @@ type
     function getStatus() : TJsonObject;
     procedure setLogger(const Logger: ILogger);
 
+
+//    property FLogger
+
   end;
 
 implementation

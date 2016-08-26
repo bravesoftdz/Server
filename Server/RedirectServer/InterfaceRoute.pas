@@ -25,12 +25,8 @@ type
       : TStringList;
     function extractCampaign(const str: String; const separ: Char): String;
     procedure Reset();
-    function getStatus() : TJsonObject;
+    function getStatus(): TJsonObject;
     procedure setLogger(const Logger: ILogger);
-
-
-//    property FLogger
-
   end;
 
 implementation

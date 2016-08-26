@@ -14,7 +14,9 @@ type
 
   [MVCPath('/news')]
   TRedirectController = class abstract(TBaseController)
-  private
+  private const
+  /// <summary>token corrsponding to the folder containing images</summary>
+    IMAGE_DIR_TOKEN: String = 'images dir';
     class var Settings: TSettings;
     class var Route: IRoute;
     class var RequestHandler: IRequestHandler;
@@ -30,7 +32,13 @@ type
       const params: TDictionary<String, String>): String;
     class procedure StartServer();
     class procedure StopServer();
+    /// <summary>Get json object containing server proper parameters</summary>
     function getStatus(): TJsonObject;
+    /// <summary>Validate given argument and in case of success, set
+    /// the image dir to that value.
+    /// A valid directory name may contain only alphanumeric symbols, underscore
+    /// and the path delimiters. </summary>
+    procedure SetImagesDir(const dirName: String); overload;
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -69,6 +77,10 @@ type
     [MVCHTTPMethod([httpPUT])]
     procedure DeleteRoutes(ctx: TWebContext);
 
+    /// <summary> Add routes passed in the body of the request.
+    /// Routes whose keys are already present in the redirect mapping,
+    /// are ignored. </summary>
+    /// <return> Json object with routes that were added to the existing ones.</return>
     [MVCPath('/routes/add')]
     [MVCHTTPMethod([httpPUT])]
     procedure addRoutes(ctx: TWebContext);
@@ -81,6 +93,8 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getLoggerStatus(ctx: TWebContext);
 
+    /// <summary>Setter for the logger properties. The properties must be
+    /// passed as a json object.</summary>
     [MVCPath('/logger/set')]
     [MVCHTTPMethod([httpPUT])]
     procedure setLoggerProperty(ctx: TWebContext);
@@ -89,9 +103,18 @@ type
 
     { Server related commands: start }
 
+    /// <summary>Get the status of the server and of all its compenents (logger,
+    /// router and storage (if any))</summary>
     [MVCPath('/server/status')]
     [MVCHTTPMethod([httpGET])]
-    procedure getServerStatus(ctx: TWebContext);
+    procedure getStatusComponents(ctx: TWebContext);
+
+    /// <summary>set the images folder
+    /// It must be passed as a key-value pair associated with IMAGE_DIR_TOKEN
+    /// of a json object </summary>
+    [MVCPath('/server/set/imagesdir')]
+    [MVCHTTPMethod([httpPUT])]
+    procedure SetImagesDir(ctx: TWebContext); overload;
 
     { Server related commands: end }
 
@@ -162,9 +185,6 @@ begin
     track, ctx);
 end;
 
-{ Adds routes passed in the body of the request. Those routes whose keys
-  are already present in the redirect mapping, are to be ignored. The method
-  returns a json object with routes that were taken into consideration }
 procedure TRedirectController.addRoutes(ctx: TWebContext);
 var
   mappings: TJsonObject;
@@ -294,8 +314,7 @@ begin
   Render(Route.getRoutes);
 end;
 
-{ Show the server status and statuses of its logger, router and storage (if any) }
-procedure TRedirectController.getServerStatus(ctx: TWebContext);
+procedure TRedirectController.getStatusComponents(ctx: TWebContext);
 var
   status: TJsonObject;
 begin
@@ -304,14 +323,17 @@ begin
     status.AddPair('logger status', Logger.getStatus);
   if not(Route = nil) then
     status.AddPair('router status', Route.getStatus);
+  if not(Storage = nil) then
+    status.AddPair('storage status', Storage.getStatus);
+  if not(ImgDir.isEmpty) then
+    status.AddPair(IMAGE_DIR_TOKEN, ImgDir);
   Render(status);
 end;
 
-{ Return json object containing parameters related to the server }
 function TRedirectController.getStatus: TJsonObject;
 begin
   Result := TJsonObject.Create;
-  Result.AddPair('image folder', ImgDir);
+  Result.AddPair(IMAGE_DIR_TOKEN, ImgDir);
 end;
 
 procedure TRedirectController.getCampaignImage(ctx: TWebContext);
@@ -418,8 +440,40 @@ begin
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 
-{ Setter for the logger properties. The properties must be
-  passed as a json object. }
+procedure TRedirectController.SetImagesDir(const dirName: String);
+var
+  regex: TRegEx;
+  dirNameTmp: String;
+begin
+  /// a pattern for invalid folder names
+  regex := TRegEx.Create('[^a-zA-Z0-9_\' + PathDelim + ']');
+  if (regex.isMatch(dirName)) then
+    Exit;
+  /// remove trailing path delimiters
+  dirNameTmp := TRegEx.Replace(dirName, '^(\' + PathDelim + ')*|(\' + PathDelim
+    + ')*$', '');
+  /// remove duplicate path delimiters
+  dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
+  if not(dirName.isEmpty) then
+    TRedirectController.ImgDir := IncludeTrailingPathDelimiter(dirName);
+end;
+
+procedure TRedirectController.SetImagesDir(ctx: TWebContext);
+var
+  request: TMVCWebRequest;
+  params: TJsonObject;
+  ImgDirPair: TJSonValue;
+  dirName: String;
+begin
+  request := ctx.request;
+  params := request.BodyAsJSONObject();
+  ImgDirPair := params.GetValue(IMAGE_DIR_TOKEN);
+  if (ImgDirPair = nil) then
+    Exit();
+  dirName := ImgDirPair.Value;
+  SetImagesDir(dirName);
+end;
+
 procedure TRedirectController.setLoggerProperty(ctx: TWebContext);
 var
   request: TMVCWebRequest;
@@ -439,21 +493,19 @@ begin
   TRedirectController.Logger := TLogger.Create('log\', 10);
   TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
     'Start the server.');
+
   TRedirectController.Route := TRoute.Create;
   TRedirectController.Route.setLogger(TRedirectController.Logger);
 
   TRedirectController.Storage := TDMStorage.Create(nil);
-  TRedirectController.Storage.setLogger(TRedirectController.Logger);
+  TRedirectController.Storage.Logger := TRedirectController.Logger;
   TRedirectController.Storage.setSettings(TRedirectController.Settings);
 
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-  TRedirectController.RequestHandler.CacheSize := TRedirectController.Settings.requestCacheSize;
-
-  TRedirectController.ImgDir := IncludeTrailingPathDelimiter
-    (TRedirectController.Settings.ImgDir);
-
+  TRedirectController.RequestHandler.CacheSize :=
+    TRedirectController.Settings.requestCacheSize;
 end;
 
 procedure TRedirectController.Echo(ctx: TWebContext);

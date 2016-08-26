@@ -60,6 +60,8 @@ type
     function concatList(const list: TStringList; const separator: Char): String;
     procedure empty(const summary: TDictionary < String, TDictionary < String,
       Integer >> );
+    /// <summary> logger setter </summary>
+    procedure setLogger(const Logger: ILogger);
 
   public
     function save(const items: TObjectList<TRequestType>): Boolean;
@@ -67,8 +69,11 @@ type
     // constructor Create(const Settings: TSettings; const Logger: ILogger);
     procedure configure(const Settings: TSettings; const Logger: ILogger);
     destructor Destroy; override;
-    /// <summary> logger setter </summary>
-    procedure setLogger(const Logger: ILogger);
+
+    /// <summary> Get the status of the storage</summary>
+    function getStatus(): TJSonObject;
+
+    property Logger: ILogger write setLogger;
 
   end;
 
@@ -164,6 +169,11 @@ begin
   values.Clear;
   keys.DisposeOf;
   values.DisposeOf;
+end;
+
+function TDMStorage.getStatus(): TJSonObject;
+begin
+  raise Exception.Create('Storage status is not implemenented yet.');
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;

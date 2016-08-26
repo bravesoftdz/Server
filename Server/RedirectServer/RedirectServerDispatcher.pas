@@ -85,7 +85,7 @@ type
     [MVCHTTPMethod([httpPUT])]
     procedure addRoutes(ctx: TWebContext);
     ///
-    /// ================== Logger END ==========
+    /// ================== Routes END ==========
 
     /// ================== Logger START ==========
     ///
@@ -470,15 +470,15 @@ procedure TRedirectController.SetImagesDir(ctx: TWebContext);
 var
   request: TMVCWebRequest;
   params: TJsonObject;
-  ImgDirPair: TJSonValue;
+  item: TJSonValue;
   dirName: String;
 begin
   request := ctx.request;
   params := request.BodyAsJSONObject();
-  ImgDirPair := params.GetValue(IMAGE_DIR_TOKEN);
-  if (ImgDirPair = nil) then
+  item := params.GetValue(IMAGE_DIR_TOKEN);
+  if (item = nil) then
     Exit();
-  dirName := ImgDirPair.Value;
+  dirName := item.Value;
   SetImagesDir(dirName);
 end;
 
@@ -498,7 +498,6 @@ procedure TRedirectController.setStorageProperties(ctx: TWebContext);
 const
   TAG: String = 'TRedirectController.setStorageProperties';
 var
-  request: TMVCWebRequest;
   params: TJsonObject;
 begin
   if Storage = nil then
@@ -508,8 +507,7 @@ begin
         'Failed to configure storage properties since no storage is found');
     Exit();
   end;
-  request := ctx.request;
-  params := request.BodyAsJSONObject();
+  params := ctx.request.BodyAsJSONObject();
   if not(params = nil) then
     Storage.setConnectionSettings(params);
 end;

@@ -40,12 +40,25 @@ type
     function updateStatement(const tableName, row: String;
       const Data: TDictionary<String, Integer>): String;
   private
+    /// <summary> Connect to a database using given parameters
+    /// The parameter is supposed to be not nil</summary>
+    procedure connect(const params: TJsonObject);
+
+  const
+    DRIVER_ID_TOKEN: String = 'DriverID';
+
+  const
+    CONNECTION_DEF_NAME: String = 'Storage_db_con';
+
   var
     /// <summary> [Optional] Reference to a logger</summary>
     FLogger: ILogger;
 
   var
     FSettings: TSettings;
+    /// <summary> Parameters of connection to a DB.
+    /// </summary>
+    FConnectionSettings: TJsonObject;
     /// <summary> Constructs an insert-into-table statement for a table with a given name and
     /// column values</summary>
     function insertStatement(const tableName: String;
@@ -63,10 +76,11 @@ type
     /// <summary> logger setter </summary>
     procedure setLogger(const Logger: ILogger);
 
-    /// <summary> Set connection settings</summary>
+  public
+    /// <summary> Set connection settings
+    /// The argument is supposed to be not nil. </summary >
     procedure setConnectionSettings(const parameters: TJsonObject);
 
-  public
     function save(const items: TObjectList<TRequestType>): Boolean;
     procedure setSettings(const Settings: TSettings);
     // constructor Create(const Settings: TSettings; const Logger: ILogger);
@@ -77,7 +91,6 @@ type
     function getStatus(): TJsonObject;
 
     property Logger: ILogger write setLogger;
-
   end;
 
 var
@@ -98,6 +111,8 @@ destructor TDMStorage.Destroy;
 begin
   FLogger := nil;
   FSettings := nil;
+  // if not(FConnectionSettings = nil) then
+  // FConnectionSettings.DisposeOf;
   inherited;
 end;
 
@@ -114,28 +129,64 @@ begin
   self.FLogger := Logger;
 end;
 
-procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
-begin
-  raise Exception.Create('Storage set connection procedure is not implemented yet');
-end;
-
-procedure TDMStorage.DataModuleCreate(Sender: TObject);
+procedure TDMStorage.connect(const params: TJsonObject);
 const
-  TAG: String = 'TDMStorage.DataModuleCreate';
+  TAG: String = 'TDMStorage.connect';
+  KEY_VALUE_SEP: String = '=';
+var
+  oParams: TStrings;
+  pair: TJsonPair;
+  driverId: String;
 begin
-  if not(Assigned(FSettings)) then
+  oParams := TStringList.Create;
+  if (params = nil) then
+  begin
+    if not(FLogger = nil) then
+      FLogger.logWarning(TAG, 'Connection parameters are missing.');
     Exit();
-  FDManager.ConnectionDefFileName := FSettings.dbConnFileName;
-  FDManager.ConnectionDefFileAutoLoad := True;
+  end;
+  if (params.GetValue(DRIVER_ID_TOKEN) = nil) then
+  begin
+    if not(FLogger = nil) then
+      FLogger.logWarning(TAG, 'No key ' + DRIVER_ID_TOKEN +
+        ' among parameter settings');
+    Exit();
+  end;
+  for pair in params do
+  begin
+    oParams.Add(pair.JsonString.value + KEY_VALUE_SEP + pair.JsonValue.value);
+  end;
+
   try
-    FDBConn.ConnectionDefName := FSettings.dbConnDefName;
+    FDManager.AddConnectionDef(CONNECTION_DEF_NAME, driverId, oParams);
+    FDBConn.ConnectionDefName := CONNECTION_DEF_NAME;
     FDBConn.Connected := True;
+    FLogger.logException(TAG, 'Connected!!!!');
   except
     on e: Exception do
     begin
-      FLogger.logException(TAG, e.Message);
+      if not(FLogger = nil) then
+        FLogger.logException(TAG, e.Message);
     end;
   end;
+  oParams.DisposeOf;
+end;
+
+procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
+var
+  item: TJsonValue;
+begin
+  /// clean previous settings if they exist
+  if not(FConnectionSettings = nil) then
+    FConnectionSettings.DisposeOf;
+  FConnectionSettings := parameters.Clone as TJsonObject;
+  connect(FConnectionSettings);
+end;
+
+procedure TDMStorage.DataModuleCreate(Sender: TObject);
+begin
+  if Assigned(FConnectionSettings) then
+    connect(FConnectionSettings);
 end;
 
 procedure TDMStorage.DataModuleDestroy(Sender: TObject);
@@ -181,7 +232,11 @@ end;
 
 function TDMStorage.getStatus(): TJsonObject;
 begin
-  raise Exception.Create('Storage status is not implemenented yet.');
+  Result := TJsonObject.Create;
+  if (FConnectionSettings = nil) then
+    Result.AddPair('settings', TJsonBool.Create(False))
+  else
+    Result.AddPair('settings', FConnectionSettings.Clone as TJsonObject);
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;

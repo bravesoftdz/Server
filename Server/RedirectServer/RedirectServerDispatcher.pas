@@ -15,7 +15,7 @@ type
   [MVCPath('/news')]
   TRedirectController = class abstract(TBaseController)
   private const
-  /// <summary>token corrsponding to the folder containing images</summary>
+    /// <summary>token corrsponding to the folder containing images</summary>
     IMAGE_DIR_TOKEN: String = 'images dir';
     class var Settings: TSettings;
     class var Route: IRoute;
@@ -63,8 +63,8 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getCampaignImageWithTrack(ctx: TWebContext);
 
-    { Route related commands: start }
-
+    /// ================== Routes START ==========
+    ///
     [MVCPath('/routes/reload')]
     [MVCHTTPMethod([httpPUT])]
     procedure LoadRoutes(ctx: TWebContext);
@@ -84,11 +84,11 @@ type
     [MVCPath('/routes/add')]
     [MVCHTTPMethod([httpPUT])]
     procedure addRoutes(ctx: TWebContext);
+    ///
+    /// ================== Logger END ==========
 
-    { Route related commands: end }
-
-    { Logger related commands: start }
-
+    /// ================== Logger START ==========
+    ///
     [MVCPath('/logger/status')]
     [MVCHTTPMethod([httpGET])]
     procedure getLoggerStatus(ctx: TWebContext);
@@ -98,11 +98,11 @@ type
     [MVCPath('/logger/set')]
     [MVCHTTPMethod([httpPUT])]
     procedure setLoggerProperty(ctx: TWebContext);
+    ///
+    /// ================== Logger END ==========
 
-    { Logger related commands: end }
-
-    { Server related commands: start }
-
+    /// ================== Server START ==========
+    ///
     /// <summary>Get the status of the server and of all its compenents (logger,
     /// router and storage (if any))</summary>
     [MVCPath('/server/status')]
@@ -115,8 +115,16 @@ type
     [MVCPath('/server/set/imagesdir')]
     [MVCHTTPMethod([httpPUT])]
     procedure SetImagesDir(ctx: TWebContext); overload;
+    ///
+    /// ================== Server END ==========
 
-    { Server related commands: end }
+    /// ================== Storage START ==========
+    ///
+    [MVCPath('/storage/set')]
+    [MVCHTTPMethod([httpPUT])]
+    procedure setStorageProperties(ctx: TWebContext);
+
+    /// ================== Storage END   ==========
 
     [MVCPath('/statistics/commit')]
     [MVCHTTPMethod([httpPUT])]
@@ -484,6 +492,26 @@ begin
   request := ctx.request;
   params := request.BodyAsJSONObject();
   Logger.setProperties(params);
+end;
+
+procedure TRedirectController.setStorageProperties(ctx: TWebContext);
+const
+  TAG: String = 'TRedirectController.setStorageProperties';
+var
+  request: TMVCWebRequest;
+  params: TJsonObject;
+begin
+  if Storage = nil then
+  begin
+    if (Logger = nil) then
+      Logger.logWarning(TAG,
+        'Failed to configure storage properties since no storage is found');
+    Exit();
+  end;
+  request := ctx.request;
+  params := request.BodyAsJSONObject();
+  if not(params = nil) then
+    Storage.setConnectionSettings(params);
 end;
 
 { Initialize the server parameters }

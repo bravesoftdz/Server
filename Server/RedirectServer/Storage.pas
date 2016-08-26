@@ -63,6 +63,9 @@ type
     /// <summary> logger setter </summary>
     procedure setLogger(const Logger: ILogger);
 
+    /// <summary> Set connection settings</summary>
+    procedure setConnectionSettings(const parameters: TJsonObject);
+
   public
     function save(const items: TObjectList<TRequestType>): Boolean;
     procedure setSettings(const Settings: TSettings);
@@ -71,7 +74,7 @@ type
     destructor Destroy; override;
 
     /// <summary> Get the status of the storage</summary>
-    function getStatus(): TJSonObject;
+    function getStatus(): TJsonObject;
 
     property Logger: ILogger write setLogger;
 
@@ -109,6 +112,11 @@ procedure TDMStorage.configure(const Settings: TSettings;
 begin
   self.FSettings := Settings;
   self.FLogger := Logger;
+end;
+
+procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
+begin
+  raise Exception.Create('Storage set connection procedure is not implemented yet');
 end;
 
 procedure TDMStorage.DataModuleCreate(Sender: TObject);
@@ -171,7 +179,7 @@ begin
   values.DisposeOf;
 end;
 
-function TDMStorage.getStatus(): TJSonObject;
+function TDMStorage.getStatus(): TJsonObject;
 begin
   raise Exception.Create('Storage status is not implemenented yet.');
 end;

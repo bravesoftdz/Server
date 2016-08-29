@@ -28,7 +28,8 @@ uses
   Settings,
   FireDAC.Moni.RemoteClient,
   System.Generics.Collections, FireDAC.VCLUI.Wait, uTPLb_Hash,
-  uTPLb_BaseNonVisualComponent, System.Classes, InterfaceLogger;
+  uTPLb_BaseNonVisualComponent, System.Classes, InterfaceLogger,
+  System.RegularExpressions;
 
 type
   TDMStorage = class(TDataModule)
@@ -37,6 +38,10 @@ type
     FDMoniRemoteClientLink1: TFDMoniRemoteClientLink;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
+    /// <summary> Create an UPDATE statement.
+    /// No placeholders are used, so the resulting string is of the following form
+    /// UPDATE `summary` SET `click` = `click` + 10, `view` = `view` + 6 WHERE `campaign` = "venditori";
+    /// < / summary >
     function updateStatement(const tableName, row: String;
       const Data: TDictionary<String, Integer>): String;
   private
@@ -76,6 +81,11 @@ type
     /// <summary> logger setter </summary>
     procedure setLogger(const Logger: ILogger);
 
+    /// <summary> Replace values of keys matching given criteria
+    /// by some hash values </summary>
+    function hideValues(const Data: TJsonObject; const crit: TRegEx; const replace: String)
+      : TJsonObject;
+
   public
     /// <summary> Set connection settings
     /// The argument is supposed to be not nil. </summary >
@@ -99,8 +109,7 @@ var
 implementation
 
 uses
-  Logger, System.Rtti, System.Variants, System.SysUtils,
-  System.RegularExpressions;
+  Logger, System.Rtti, System.Variants, System.SysUtils, IdHashSHA, IdGlobal;
 
 { %CLASSGROUP 'Vcl.Controls.TControl' }
 
@@ -115,12 +124,6 @@ begin
   // FConnectionSettings.DisposeOf;
   inherited;
 end;
-
-// constructor TDMStorage.Create(const Settings: TSettings; const Logger: ILogger);
-// begin
-// configure(Settings, Logger);
-// inherited Create(nil);
-// end;
 
 procedure TDMStorage.configure(const Settings: TSettings;
   const Logger: ILogger);
@@ -236,7 +239,8 @@ begin
   if (FConnectionSettings = nil) then
     Result.AddPair('settings', TJsonBool.Create(False))
   else
-    Result.AddPair('settings', FConnectionSettings.Clone as TJsonObject);
+    Result.AddPair('settings', hideValues(FConnectionSettings,
+      TRegEx.Create('password|user_name', [roIgnoreCase])));
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;
@@ -369,10 +373,24 @@ begin
   end;
 end;
 
-{ Create an UPDATE statement.  No placeholders are used, so the resulting string
-  is of the following form
-  UPDATE `summary` SET `click` = `click` + 10, `view` = `view` + 6 WHERE `campaign` = "venditori";
-}
+function TDMStorage.hideValues(const Data: TJsonObject;
+  const crit: TRegEx; const replace: String): TJsonObject;
+var
+  pair: TJsonPair;
+  key, value: String;
+begin
+  Result := TJsonObject.Create;
+  for pair in Data do
+  begin
+    key := pair.JsonString.value;
+    if crit.IsMatch(key) then
+      Result.AddPair(key, replace)
+    else
+      Result.AddPair(pair.Clone as TJsonPair)
+  end;
+
+end;
+
 function TDMStorage.updateStatement(const tableName, row: String;
   const Data: TDictionary<String, Integer>): String;
 const

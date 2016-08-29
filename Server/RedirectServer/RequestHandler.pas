@@ -40,14 +40,14 @@ type
     procedure Archive(const data: TRequestType);
     procedure Commit;
     function Count: Integer;
-    constructor Create;
+    constructor Create(const CacheSize: Integer);
 
     procedure configure(const Logger: ILogger; const CacheSize: Integer;
       const Storage: TDMStorage);
     destructor Destroy; override;
     procedure SetStorage(const St: TDMStorage);
     procedure SetLogger(const Logger: ILogger);
-    procedure SetMaxCacheSize(MaxCacheSize: Integer);
+    procedure SetMaxCacheSize(MaxcacheSize: Integer);
 
     property Storage: TDMStorage write SetStorage;
     property Logger: ILogger write SetLogger;
@@ -66,10 +66,11 @@ var
 
   { TRequestHandler }
 
-constructor TRequestHandler.Create;
+constructor TRequestHandler.Create(const CacheSize: Integer);
 begin
   FRequests := TObjectList<TRequestType>.Create;
   FLockObject := TObject.Create;
+  FMaxCacheSize := CacheSize;
 end;
 
 destructor TRequestHandler.Destroy;
@@ -77,6 +78,7 @@ begin
   FStorage := nil;
   FLogger := nil;
   FLockObject.DisposeOf;
+  FRequests.Clear;
   FRequests.DisposeOf;
   inherited;
 end;
@@ -86,10 +88,10 @@ begin
   FLogger := Logger;
 end;
 
-procedure TRequestHandler.SetMaxCacheSize(MaxCacheSize: Integer);
+procedure TRequestHandler.SetMaxCacheSize(MaxcacheSize: Integer);
 begin
-  if MaxCacheSize >= 0 then
-    FMaxCacheSize := MaxCacheSize;
+  if MaxcacheSize >= 0 then
+    FMaxCacheSize := MaxcacheSize;
 end;
 
 procedure TRequestHandler.SetStorage(const St: TDMStorage);

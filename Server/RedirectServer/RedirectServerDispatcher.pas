@@ -17,7 +17,7 @@ type
   private const
     /// <summary>token corrsponding to the folder containing images</summary>
     IMAGE_DIR_TOKEN: String = 'images dir';
-    class var Settings: TSettings;
+//    class var Settings: TSettings;
     class var Route: IRoute;
     class var RequestHandler: IRequestHandler;
     class var Storage: TDMStorage;
@@ -65,10 +65,6 @@ type
 
     /// ================== Routes START ==========
     ///
-    [MVCPath('/routes/reload')]
-    [MVCHTTPMethod([httpPUT])]
-    procedure LoadRoutes(ctx: TWebContext);
-
     [MVCPath('/routes')]
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
@@ -145,10 +141,6 @@ type
     [MVCPath('/resume/($campaign)')]
     [MVCHTTPMethod([httpPUT])]
     procedure resumeCampaign(ctx: TWebContext);
-
-    [MVCPath('/restart')]
-    [MVCHTTPMethod([httpPUT])]
-    procedure restart(ctx: TWebContext);
 
     [MVCPath('/($campaign)/($article)')]
     [MVCHTTPMethod([httpGET])]
@@ -261,7 +253,7 @@ begin
   TRedirectController.Route.Reset();
   TRedirectController.Route := nil;
   TRedirectController.Logger := nil;
-  TRedirectController.Settings.DisposeOf;
+//  TRedirectController.Settings.DisposeOf;
 
 end;
 
@@ -390,17 +382,6 @@ begin
   Render(Route.getCampaigns)
 end;
 
-procedure TRedirectController.restart(ctx: TWebContext);
-begin
-  RequestHandler.commit;
-  Logger.flushCache;
-  Settings.load();
-  Logger.configure(Settings.logDir, Settings.logCacheSize);
-  Route.configure(Logger, Settings.routeFileName);
-  Storage.configure(Settings, Logger);
-  RequestHandler.configure(Logger, Settings.requestCacheSize, Storage);
-  TRedirectController.ImgDir := IncludeTrailingPathDelimiter(Settings.ImgDir);
-end;
 
 procedure TRedirectController.resumeCampaign(ctx: TWebContext);
 var
@@ -412,15 +393,6 @@ begin
   Route.setCampaignStatus(campaign, true);
 end;
 
-{ REST method that loads the routes from a file defined by the config file }
-procedure TRedirectController.LoadRoutes(ctx: TWebContext);
-begin
-  TThread.CreateAnonymousThread(
-    procedure
-    begin
-      Route.loadRoutesFromFile(Settings.routeFileName);
-    end).start;
-end;
 
 procedure TRedirectController.OnBeforeAction(Context: TWebContext;
 const AActionNAme: string; var Handled: Boolean);
@@ -515,8 +487,7 @@ end;
 { Initialize the server parameters }
 class procedure TRedirectController.StartServer;
 begin
-  TRedirectController.Settings := TSettings.Create('.\Server.conf');
-  TRedirectController.Logger := TLogger.Create('log\', 10);
+  TRedirectController.Logger := TLogger.Create('log' + PathDelim, 10);
   TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
     'Start the server.');
 
@@ -525,13 +496,10 @@ begin
 
   TRedirectController.Storage := TDMStorage.Create(nil);
   TRedirectController.Storage.Logger := TRedirectController.Logger;
-  TRedirectController.Storage.setSettings(TRedirectController.Settings);
 
-  TRedirectController.RequestHandler := TRequestHandler.Create;
+  TRedirectController.RequestHandler := TRequestHandler.Create(10);
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-  TRedirectController.RequestHandler.CacheSize :=
-    TRedirectController.Settings.requestCacheSize;
 end;
 
 procedure TRedirectController.Echo(ctx: TWebContext);

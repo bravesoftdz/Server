@@ -239,7 +239,7 @@ begin
       TRegEx.Create('password|user_name', [roIgnoreCase]),
       function(input: String): String
       begin
-        Result := input;
+        Result := TRegEx.Create('.').Replace(input, '*');
       end));
 end;
 

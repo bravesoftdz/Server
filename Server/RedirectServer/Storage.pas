@@ -83,8 +83,8 @@ type
 
     /// <summary> Replace values of keys matching given criteria
     /// by some hash values </summary>
-    function hideValues(const Data: TJsonObject; const crit: TRegEx; const replace: String)
-      : TJsonObject;
+    function hideValues(const Data: TJsonObject; const crit: TRegEx;
+      const replace: String): TJsonObject;
 
   public
     /// <summary> Set connection settings
@@ -120,8 +120,8 @@ destructor TDMStorage.Destroy;
 begin
   FLogger := nil;
   FSettings := nil;
-  // if not(FConnectionSettings = nil) then
-  // FConnectionSettings.DisposeOf;
+  if not(FConnectionSettings = nil) then
+    FConnectionSettings.DisposeOf;
   inherited;
 end;
 
@@ -141,7 +141,6 @@ var
   pair: TJsonPair;
   driverId: String;
 begin
-  oParams := TStringList.Create;
   if (params = nil) then
   begin
     if not(FLogger = nil) then
@@ -155,6 +154,8 @@ begin
         ' among parameter settings');
     Exit();
   end;
+
+  oParams := TStringList.Create;
   for pair in params do
   begin
     oParams.Add(pair.JsonString.value + KEY_VALUE_SEP + pair.JsonValue.value);
@@ -222,7 +223,7 @@ begin
   for key in Data.keys do
   begin
     keys.Add(FIELDNAMEWRAPPER + key + FIELDNAMEWRAPPER);
-    value := TRegEx.Replace(Data.items[key], '(?<!\\)&', '\\&', [roIgnoreCase]);
+    value := TRegEx.replace(Data.items[key], '(?<!\\)&', '\\&', [roIgnoreCase]);
     values.Add('"' + value + '"')
   end;
   Result := 'INSERT INTO ' + tableName + ' (' + concatList(keys, FIELDSEPARATOR)
@@ -240,7 +241,7 @@ begin
     Result.AddPair('settings', TJsonBool.Create(False))
   else
     Result.AddPair('settings', hideValues(FConnectionSettings,
-      TRegEx.Create('password|user_name', [roIgnoreCase])));
+      TRegEx.Create('password|user_name', [roIgnoreCase]), '****'));
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;
@@ -321,7 +322,7 @@ end;
 function TDMStorage.concatList(const list: TStringList;
   const separator: Char): String;
 begin
-  Result := list.Text.Trim.Replace(sLineBreak, separator, [rfReplaceAll]);
+  Result := list.Text.Trim.replace(sLineBreak, separator, [rfReplaceAll]);
 end;
 
 procedure TDMStorage.createSummaryRow(const tableName, line: String;
@@ -373,8 +374,8 @@ begin
   end;
 end;
 
-function TDMStorage.hideValues(const Data: TJsonObject;
-  const crit: TRegEx; const replace: String): TJsonObject;
+function TDMStorage.hideValues(const Data: TJsonObject; const crit: TRegEx;
+  const replace: String): TJsonObject;
 var
   pair: TJsonPair;
   key, value: String;

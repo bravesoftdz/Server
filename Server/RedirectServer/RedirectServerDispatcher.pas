@@ -17,7 +17,7 @@ type
   private const
     /// <summary>token corrsponding to the folder containing images</summary>
     IMAGE_DIR_TOKEN: String = 'images dir';
-//    class var Settings: TSettings;
+    // class var Settings: TSettings;
     class var Route: IRoute;
     class var RequestHandler: IRequestHandler;
     class var Storage: TDMStorage;
@@ -69,6 +69,7 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
 
+    /// <summary>Delete routes encoded as a json array in the request body </summary>
     [MVCPath('/routes/delete')]
     [MVCHTTPMethod([httpPUT])]
     procedure DeleteRoutes(ctx: TWebContext);
@@ -176,7 +177,7 @@ var
 begin
   request := ctx.request;
   mappings := request.BodyAsJSONObject();
-  Route.add(mappings)
+  Route.addRoutes(mappings)
 end;
 
 procedure TRedirectController.ArchiveAndRedirect(const campaign, article,
@@ -239,7 +240,6 @@ begin
 
 end;
 
-{ Delete routes encoded as a json array in the request body }
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
 var
   request: TMVCWebRequest;

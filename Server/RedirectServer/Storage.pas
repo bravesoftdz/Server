@@ -47,7 +47,6 @@ type
   private
     /// <summary> [Optional] Reference to a logger</summary>
     FLogger: ILogger;
-    FSettings: TSettings;
     /// <summary> Parameters of connection to a DB.
     /// </summary>
     FConnectionSettings: TJsonObject;
@@ -55,6 +54,7 @@ type
   const
     DRIVER_ID_TOKEN: String = 'DriverID';
     CONNECTION_DEF_NAME: String = 'Storage_db_con';
+    DB_SUMMARY_TABLE_NAME : String = 'summary';
     /// <summary> Constructs an insert-into-table statement for a table with a given name and
     /// column values</summary>
     function insertStatement(const tableName: String;
@@ -87,9 +87,6 @@ type
     procedure setConnectionSettings(const parameters: TJsonObject);
 
     function save(const items: TObjectList<TRequestType>): Boolean;
-    procedure setSettings(const Settings: TSettings);
-    // constructor Create(const Settings: TSettings; const Logger: ILogger);
-    procedure configure(const Settings: TSettings; const Logger: ILogger);
     destructor Destroy; override;
 
     /// <summary> Get the status of the storage</summary>
@@ -114,17 +111,9 @@ uses
 destructor TDMStorage.Destroy;
 begin
   FLogger := nil;
-  FSettings := nil;
   if not(FConnectionSettings = nil) then
     FConnectionSettings.DisposeOf;
   inherited;
-end;
-
-procedure TDMStorage.configure(const Settings: TSettings;
-  const Logger: ILogger);
-begin
-  self.FSettings := Settings;
-  self.FLogger := Logger;
 end;
 
 procedure TDMStorage.connect(const params: TJsonObject);
@@ -193,10 +182,6 @@ begin
   FDBConn.Connected := False;
 end;
 
-procedure TDMStorage.setSettings(const Settings: TSettings);
-begin
-  self.FSettings := Settings;
-end;
 
 procedure TDMStorage.setLogger(const Logger: ILogger);
 begin
@@ -350,7 +335,6 @@ begin
   fieldNames.DisposeOf;
   fieldValues.DisposeOf;
   FDBConn.ExecSQL(statement, []);
-
 end;
 
 procedure TDMStorage.updateSummary(const summary: TDictionary < String,
@@ -361,15 +345,14 @@ var
   tableName: String;
   rowFetch: Variant;
 begin
-  tableName := FSettings.dbSummaryTableName;
   for line in summary.keys do
   begin
     rowFetch := FDBConn.ExecSQLScalar('SELECT * FROM ' + tableName +
       '  WHERE `campaign` = "' + line + '";');
     if VarIsEmpty(rowFetch) then
-      createSummaryRow(tableName, line, summary.items[line])
+      createSummaryRow(DB_SUMMARY_TABLE_NAME, line, summary.items[line])
     else
-      updateSummaryRow(tableName, line, summary.items[line]);
+      updateSummaryRow(DB_SUMMARY_TABLE_NAME, line, summary.items[line]);
   end;
 end;
 

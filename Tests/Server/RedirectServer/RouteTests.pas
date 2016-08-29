@@ -58,7 +58,7 @@ begin
   mapIn := TJSonObject.Create;
   mapIn.AddPair(key1, value);
   mapIn.AddPair(key2, nil);
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
   mapOut := aTRoute.getRoutes;
   Assert.IsTrue(mapOut.Count = 1);
   Assert.AreEqual(mapOut.GetValue(key1).value, value);
@@ -81,7 +81,7 @@ begin
   mapIn := TJSonObject.Create;
   mapIn.AddPair(key1, value1);
   mapIn.AddPair(key2, value2);
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
 
   Assert.AreEqual(2, aTRoute.getRoutes.Count);
 
@@ -106,7 +106,7 @@ begin
   value := 'http://www.another-example.com';
   mapIn := TJSonObject.Create;
   mapIn.AddPair(key, value);
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
   Assert.AreEqual(aTRoute.getRoutes.Count, 1);
 
   routes := TJsonArray.Create;
@@ -147,7 +147,7 @@ begin
   mapIn.AddPair(key2, value2);
   mapIn.AddPair(key3, value3);
 
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
   Assert.AreEqual(3, aTRoute.getRoutes.Count);
 
   routes := TJsonArray.Create;
@@ -172,7 +172,7 @@ begin
   map2.AddPair('foo', 'boo');
   map1.AddPair(key, map2);
 
-  aTRoute.Add(map1);
+  aTRoute.AddRoutes(map1);
   mapOut := aTRoute.getRoutes;
 
   Assert.IsTrue(mapOut.Count = 0);
@@ -189,10 +189,10 @@ begin
   value2 := 'http://www.another-example.com';
   mapIn1 := TJSonObject.Create;
   mapIn1.AddPair(key, value1);
-  aTRoute.Add(mapIn1);
+  aTRoute.AddRoutes(mapIn1);
   mapIn2 := TJSonObject.Create;
   mapIn2.AddPair(key, value2);
-  aTRoute.Add(mapIn2);
+  aTRoute.AddRoutes(mapIn2);
 
   mapOut := aTRoute.getRoutes;
 
@@ -213,7 +213,7 @@ begin
   value := 'http://www.example.com/';
   mapIn := TJSonObject.Create;
   mapIn.AddPair(key, value);
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
   mapOut := aTRoute.getRoutes;
   Assert.IsTrue(mapOut.Count = 1);
   Assert.AreEqual(mapOut.GetValue(key).value, value);
@@ -233,7 +233,7 @@ begin
   mapIn := TJSonObject.Create;
   mapIn.AddPair(key1, value1);
   mapIn.AddPair(key2, value2);
-  aTRoute.Add(mapIn);
+  aTRoute.AddRoutes(mapIn);
   mapOut := aTRoute.getRoutes;
   Assert.IsTrue(mapOut.Count = 2);
   Assert.AreEqual(mapOut.GetValue(key1).value, value1);

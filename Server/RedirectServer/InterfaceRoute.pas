@@ -11,20 +11,9 @@ type
     { Retrieve an url corresponding to the argument. }
     function getUrl(const campaign: String; article: String): String;
     function getRoutes(): TJsonObject;
-    function convertToRoutes(const lines: TStringList)
-      : TDictionary<String, String>;
-    procedure loadRoutesFromFile(const fileName: String);
     procedure setRoutes(const routes: TDictionary<String, String>);
-    procedure setCampaignStatus(const campaign: String; const status: Boolean);
-    procedure configure(const Logger: ILogger; const fileName: String);
-    function getCampaigns: TJsonArray;
-    function getPausedCampaigns: TJsonArray;
-    procedure add(const routes: TJsonObject);
+    procedure addRoutes(const routes: TJsonObject);
     procedure delete(const routes: TJsonArray);
-    function extractCampaigns(const routes: TDictionary<String, String>)
-      : TStringList;
-    function extractCampaign(const str: String; const separ: Char): String;
-    procedure Reset();
     function getStatus(): TJsonObject;
     procedure setLogger(const Logger: ILogger);
   end;

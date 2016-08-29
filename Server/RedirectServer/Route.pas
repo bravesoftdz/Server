@@ -23,19 +23,17 @@ type
     FMapper: TDictionary<String, String>;
     /// <summary>[Optional] a logger by means of which to log important events.</summary>
     FLogger: ILogger;
-
-    /// <summary>a map of campaign statuses: true for active, false for paused </summary>
-    // FCampaignStatuses: TDictionary<String, Boolean>;
-
-    // function campaignExistsInMapper(const campaign: String): Boolean;
-
   public
     /// <summary>Retrieve an url corresponding to the argument.</summary>
     function getUrl(const campaign: String; article: String): String; overload;
+    /// <summary> Reset the exisiting map of the routes and add new ones
+    /// copying them one-by-one from given ones
+    /// </summary>
     procedure setRoutes(const routes: TDictionary<String, String>);
+    /// <summary> Getter of existing redirects</summary>
     function getRoutes(): TJsonObject;
     constructor Create();
-    /// <summary> Add given routes to exisitng ones.
+    /// <summary> Add given routes to exisiting ones.
     /// The argument is supposed to have the following format:
     // {'campaign1/route1':'http://www.example.com',
     // 'campaign2/route2':'http://www.another-example.com',
@@ -43,7 +41,7 @@ type
     /// In case a route key already exists, the new route
     // is ignored.
     /// </summary>
-    procedure add(const routes: TJsonObject);
+    procedure addRoutes(const routes: TJsonObject);
     /// <summary>Delete routes.
     /// The argument is suposed of the following format
     /// {0: 'route1', 1: 'route2', ...}</summary>
@@ -75,7 +73,7 @@ begin
   inherited;
 end;
 
-procedure TRoute.add(const routes: TJsonObject);
+procedure TRoute.addRoutes(const routes: TJsonObject);
 var
   aPair: TJSONPair;
   key, value: String;
@@ -104,7 +102,7 @@ end;
 procedure TRoute.delete(const routes: TJsonArray);
 var
   routeJSONValue: TJSONValue;
-  Route : String;
+  Route: String;
 begin
   if (routes = nil) OR (routes.Count = 0) then
     Exit();
@@ -121,8 +119,6 @@ begin
   self.FLogger := Logger;
 end;
 
-{ Reset the previous routes and copy the new ones one-by-one from given maps
-  into the class member }
 procedure TRoute.setRoutes(const routes: TDictionary<String, String>);
 var
   item: TPair<String, String>;

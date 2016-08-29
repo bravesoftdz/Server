@@ -29,7 +29,7 @@ uses
   FireDAC.Moni.RemoteClient,
   System.Generics.Collections, FireDAC.VCLUI.Wait, uTPLb_Hash,
   uTPLb_BaseNonVisualComponent, System.Classes, InterfaceLogger,
-  System.RegularExpressions;
+  System.RegularExpressions, System.SysUtils;
 
 type
   TDMStorage = class(TDataModule)
@@ -45,30 +45,20 @@ type
     function updateStatement(const tableName, row: String;
       const Data: TDictionary<String, Integer>): String;
   private
-    /// <summary> Connect to a database using given parameters
-    /// The parameter is supposed to be not nil</summary>
-    procedure connect(const params: TJsonObject);
-
-  const
-    DRIVER_ID_TOKEN: String = 'DriverID';
-
-  const
-    CONNECTION_DEF_NAME: String = 'Storage_db_con';
-
-  var
     /// <summary> [Optional] Reference to a logger</summary>
     FLogger: ILogger;
-
-  var
     FSettings: TSettings;
     /// <summary> Parameters of connection to a DB.
     /// </summary>
     FConnectionSettings: TJsonObject;
+
+  const
+    DRIVER_ID_TOKEN: String = 'DriverID';
+    CONNECTION_DEF_NAME: String = 'Storage_db_con';
     /// <summary> Constructs an insert-into-table statement for a table with a given name and
     /// column values</summary>
     function insertStatement(const tableName: String;
       const Data: TDictionary<String, String>): String;
-
     procedure updateSummary(const summary: TDictionary < String,
       TDictionary < String, Integer >> );
     procedure updateSummaryRow(const tableName, line: String;
@@ -80,11 +70,16 @@ type
       Integer >> );
     /// <summary> logger setter </summary>
     procedure setLogger(const Logger: ILogger);
+    /// <summary> Connect to a database using given parameters
+    /// The parameter is supposed to be not nil</summary>
+    procedure connect(const params: TJsonObject);
 
     /// <summary> Replace values of keys matching given criteria
     /// by some hash values </summary>
+    // function hideValues_old(const Data: TJsonObject; const crit: TRegEx;
+    // const replace: String): TJsonObject;
     function hideValues(const Data: TJsonObject; const crit: TRegEx;
-      const replace: String): TJsonObject;
+      callback: TFunc<String, String>): TJsonObject;
 
   public
     /// <summary> Set connection settings
@@ -109,7 +104,7 @@ var
 implementation
 
 uses
-  Logger, System.Rtti, System.Variants, System.SysUtils, IdHashSHA, IdGlobal;
+  Logger, System.Rtti, System.Variants;
 
 { %CLASSGROUP 'Vcl.Controls.TControl' }
 
@@ -241,7 +236,11 @@ begin
     Result.AddPair('settings', TJsonBool.Create(False))
   else
     Result.AddPair('settings', hideValues(FConnectionSettings,
-      TRegEx.Create('password|user_name', [roIgnoreCase]), '****'));
+      TRegEx.Create('password|user_name', [roIgnoreCase]),
+      function(input: String): String
+      begin
+        Result := input;
+      end));
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;
@@ -320,13 +319,13 @@ end;
 { Concatenates the string list elements with a given separator being put between
   the elements. }
 function TDMStorage.concatList(const list: TStringList;
-  const separator: Char): String;
+const separator: Char): String;
 begin
   Result := list.Text.Trim.replace(sLineBreak, separator, [rfReplaceAll]);
 end;
 
 procedure TDMStorage.createSummaryRow(const tableName, line: String;
-  const Data: TDictionary<String, Integer>);
+const Data: TDictionary<String, Integer>);
 const
   FIELDSEPARATOR = ',';
 var
@@ -375,7 +374,7 @@ begin
 end;
 
 function TDMStorage.hideValues(const Data: TJsonObject; const crit: TRegEx;
-  const replace: String): TJsonObject;
+callback: TFunc<String, String>): TJsonObject;
 var
   pair: TJsonPair;
   key, value: String;
@@ -385,15 +384,14 @@ begin
   begin
     key := pair.JsonString.value;
     if crit.IsMatch(key) then
-      Result.AddPair(key, replace)
+      Result.AddPair(key, callback(pair.JsonValue.value))
     else
       Result.AddPair(pair.Clone as TJsonPair)
   end;
-
 end;
 
 function TDMStorage.updateStatement(const tableName, row: String;
-  const Data: TDictionary<String, Integer>): String;
+const Data: TDictionary<String, Integer>): String;
 const
   TAG = 'TDMStorage.updateStatement';
   COMMA_SEPARATOR = ',';
@@ -418,7 +416,7 @@ begin
 end;
 
 procedure TDMStorage.updateSummaryRow(const tableName, line: String;
-  const Data: TDictionary<String, Integer>);
+const Data: TDictionary<String, Integer>);
 var
   statement: String;
   values: TArray<Integer>;

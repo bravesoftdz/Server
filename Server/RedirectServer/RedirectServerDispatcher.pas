@@ -126,22 +126,6 @@ type
     [MVCHTTPMethod([httpPUT])]
     procedure flushStatistics(ctx: TWebContext);
 
-    [MVCPath('/paused-campaigns')]
-    [MVCHTTPMethod([httpGET])]
-    procedure getPausedCampaigns(ctx: TWebContext);
-
-    [MVCPath('/campaigns')]
-    [MVCHTTPMethod([httpGET])]
-    procedure getCampaigns(ctx: TWebContext);
-
-    [MVCPath('/pause/($campaign)')]
-    [MVCHTTPMethod([httpPUT])]
-    procedure pauseCampaign(ctx: TWebContext);
-
-    [MVCPath('/resume/($campaign)')]
-    [MVCHTTPMethod([httpPUT])]
-    procedure resumeCampaign(ctx: TWebContext);
-
     [MVCPath('/($campaign)/($article)')]
     [MVCHTTPMethod([httpGET])]
     [MVCProduces('text/html', 'UTF-8')]
@@ -250,10 +234,8 @@ begin
     'Stop the server');
   TRedirectController.RequestHandler := nil;
   TRedirectController.Storage.DisposeOf;
-  TRedirectController.Route.Reset();
   TRedirectController.Route := nil;
   TRedirectController.Logger := nil;
-//  TRedirectController.Settings.DisposeOf;
 
 end;
 
@@ -286,11 +268,6 @@ begin
   else
     jo := Logger.getStatus();
   Render(jo);
-end;
-
-procedure TRedirectController.getPausedCampaigns(ctx: TWebContext);
-begin
-  Render(Route.getPausedCampaigns);
 end;
 
 function TRedirectController.GetQueryMap(const data: TStrings)
@@ -377,37 +354,10 @@ begin
   SendImage(filePath, ctx);
 end;
 
-procedure TRedirectController.getCampaigns(ctx: TWebContext);
-begin
-  Render(Route.getCampaigns)
-end;
-
-
-procedure TRedirectController.resumeCampaign(ctx: TWebContext);
-var
-  request: TMVCWebRequest;
-  campaign: String;
-begin
-  request := ctx.request;
-  campaign := request.params['campaign'];
-  Route.setCampaignStatus(campaign, true);
-end;
-
-
 procedure TRedirectController.OnBeforeAction(Context: TWebContext;
 const AActionNAme: string; var Handled: Boolean);
 begin
   // inherited;
-end;
-
-procedure TRedirectController.pauseCampaign(ctx: TWebContext);
-var
-  request: TMVCWebRequest;
-  campaign: String;
-begin
-  request := ctx.request;
-  campaign := request.params['campaign'];
-  Route.setCampaignStatus(campaign, false);
 end;
 
 procedure TRedirectController.SendImage(const path: String;

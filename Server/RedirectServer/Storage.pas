@@ -54,7 +54,7 @@ type
   const
     DRIVER_ID_TOKEN: String = 'DriverID';
     CONNECTION_DEF_NAME: String = 'Storage_db_con';
-    DB_SUMMARY_TABLE_NAME : String = 'summary';
+    DB_SUMMARY_TABLE_NAME: String = 'summary';
     /// <summary> Constructs an insert-into-table statement for a table with a given name and
     /// column values</summary>
     function insertStatement(const tableName: String;
@@ -146,15 +146,25 @@ begin
   end;
 
   try
-    FDManager.AddConnectionDef(CONNECTION_DEF_NAME, driverId, oParams);
-    FDBConn.ConnectionDefName := CONNECTION_DEF_NAME;
+    // FDManager.AddConnectionDef(CONNECTION_DEF_NAME, driverId, oParams);
+    // FDBConn.ConnectionDefName := CONNECTION_DEF_NAME;
+    FDBConn.DriverName := 'MySQL';
+    FDBConn.params.Database := 'advlite_dev';
+    FDBConn.params.Values['Server'] := '192.168.5.45';
+    FDBConn.params.Values['User_Name'] := 'advlite_dev';
+    FDBConn.params.Values['Password'] := '4El05eK!"{';
+    FDBConn.params.Values['DriverID'] := 'MySQL';
+
     FDBConn.Connected := True;
-    FLogger.logException(TAG, 'Connected!!!!');
+    if not(FLogger = nil) then
+      FLogger.logInfo(TAG, 'Connected!');
+
   except
     on e: Exception do
     begin
       if not(FLogger = nil) then
-        FLogger.logException(TAG, e.Message);
+        FLogger.logException(TAG, e.Message + ', connection params: ' +
+          oParams.Text);
     end;
   end;
   oParams.DisposeOf;
@@ -182,7 +192,6 @@ begin
   FDBConn.Connected := False;
 end;
 
-
 procedure TDMStorage.setLogger(const Logger: ILogger);
 begin
   self.FLogger := Logger;
@@ -196,22 +205,22 @@ const
   FIELDSEPARATOR = ',';
 var
   key, value: String;
-  keys, values: TStringList;
+  keys, Values: TStringList;
 begin
   keys := TStringList.Create;
-  values := TStringList.Create;
+  Values := TStringList.Create;
   for key in Data.keys do
   begin
     keys.Add(FIELDNAMEWRAPPER + key + FIELDNAMEWRAPPER);
     value := TRegEx.replace(Data.items[key], '(?<!\\)&', '\\&', [roIgnoreCase]);
-    values.Add('"' + value + '"')
+    Values.Add('"' + value + '"')
   end;
   Result := 'INSERT INTO ' + tableName + ' (' + concatList(keys, FIELDSEPARATOR)
-    + ') VALUES (' + concatList(values, FIELDSEPARATOR) + ');';
+    + ') VALUES (' + concatList(Values, FIELDSEPARATOR) + ');';
   keys.Clear;
-  values.Clear;
+  Values.Clear;
   keys.DisposeOf;
-  values.DisposeOf;
+  Values.DisposeOf;
 end;
 
 function TDMStorage.getStatus(): TJsonObject;
@@ -224,20 +233,20 @@ begin
       TRegEx.Create('password|user_name', [roIgnoreCase]),
       function(input: String): String
       begin
-        Result := TRegEx.Create('.').Replace(input, '*');
+        Result := TRegEx.Create('.').replace(input, '*');
       end));
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;
 const
-  TAG: String = 'TDMStorage.insertRedirect';
+  TAG: String = 'TDMStorage.save';
   separator: String = ', ';
   FIELDNAMEWRAPPER: String = '`';
   PLACEHOLDERVALUE: String = ':a';
 var
   item: TRequestType;
   statement, tableName, campaign: String;
-  values: TDictionary<String, String>;
+  Values: TDictionary<String, String>;
   summary: TDictionary<String, TDictionary<String, Integer>>;
 
 begin
@@ -252,9 +261,9 @@ begin
       for item in items do
       begin
         tableName := item.getMarker;
-        values := item.getValues;
-        statement := insertStatement(tableName, values);
-        values.Clear;
+        Values := item.getValues;
+        statement := insertStatement(tableName, Values);
+        Values.Clear;
         FDBConn.ExecSQL(statement, []);
         // update summary
         campaign := item.getCampaign;
@@ -273,7 +282,7 @@ begin
       on e: Exception do
       begin
         FDBConn.Rollback;
-        FLogger.logException('TDMStorage.insertRedirect', e.Message);
+        FLogger.logException(TAG, e.Message);
         raise;
       end;
     end;
@@ -347,7 +356,7 @@ var
 begin
   for line in summary.keys do
   begin
-    rowFetch := FDBConn.ExecSQLScalar('SELECT * FROM ' + tableName +
+    rowFetch := FDBConn.ExecSQLScalar('SELECT * FROM ' + DB_SUMMARY_TABLE_NAME +
       '  WHERE `campaign` = "' + line + '";');
     if VarIsEmpty(rowFetch) then
       createSummaryRow(DB_SUMMARY_TABLE_NAME, line, summary.items[line])
@@ -402,9 +411,9 @@ procedure TDMStorage.updateSummaryRow(const tableName, line: String;
 const Data: TDictionary<String, Integer>);
 var
   statement: String;
-  values: TArray<Integer>;
+  Values: TArray<Integer>;
 begin
-  values := Data.values.ToArray;
+  Values := Data.Values.ToArray;
   statement := updateStatement(tableName, line, Data);
   FDBConn.ExecSQL(statement, []);
 end;

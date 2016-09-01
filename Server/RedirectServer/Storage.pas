@@ -121,7 +121,6 @@ const
   TAG: String = 'TDMStorage.connect';
   KEY_VALUE_SEP: String = '=';
 var
-  oParams: TStrings;
   pair: TJsonPair;
   driverId: String;
 begin
@@ -131,43 +130,26 @@ begin
       FLogger.logWarning(TAG, 'Connection parameters are missing.');
     Exit();
   end;
-  if (params.GetValue(DRIVER_ID_TOKEN) = nil) then
-  begin
-    if not(FLogger = nil) then
-      FLogger.logWarning(TAG, 'No key ' + DRIVER_ID_TOKEN +
-        ' among parameter settings');
-    Exit();
-  end;
-
-  oParams := TStringList.Create;
   for pair in params do
   begin
-    oParams.Add(pair.JsonString.value + KEY_VALUE_SEP + pair.JsonValue.value);
+    FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
   end;
-
   try
-    // FDManager.AddConnectionDef(CONNECTION_DEF_NAME, driverId, oParams);
-    // FDBConn.ConnectionDefName := CONNECTION_DEF_NAME;
-    FDBConn.DriverName := 'MySQL';
-    FDBConn.params.Database := 'advlite_dev';
-    FDBConn.params.Values['Server'] := '192.168.5.45';
-    FDBConn.params.Values['User_Name'] := 'advlite_dev';
-    FDBConn.params.Values['Password'] := '4El05eK!"{';
-    FDBConn.params.Values['DriverID'] := 'MySQL';
-
+    if FDBConn.Connected then
+    begin
+      FDBConn.Connected := False;
+      FLogger.logInfo(TAG, 'Disconnect');
+    end;
     FDBConn.Connected := True;
     if not(FLogger = nil) then
       FLogger.logInfo(TAG, 'Connected!');
-
   except
     on e: Exception do
     begin
       if not(FLogger = nil) then
-        FLogger.logException(TAG, e.Message + ', connection params: ' +
-          oParams.Text);
+        FLogger.logException(TAG, e.Message);
     end;
   end;
-  oParams.DisposeOf;
 end;
 
 procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);

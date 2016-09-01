@@ -59,9 +59,16 @@ type
     FLockObject: TObject;
 
   const
+    /// <summary>table into which the overall summary is to be written</summary>
     DB_SUMMARY_TABLE_NAME: String = 'summary';
-    /// <summary> Constructs an insert-into-table statement for a table with a given name and
-    /// column values</summary>
+    /// <summary>a name of the token under which the connection-related
+    /// data are to be stored into the status object</summary>
+    CONNECTION_STATUS_TOKEN = 'connection';
+    /// <summary> token under which the cache size is stored in the status object
+    /// </summary>
+    CACHE_SIZE_TOKEN = 'cache size';
+    /// <summary> Constructs an insert-into-table statement for a
+    /// table with a given name and column values</summary>
     function insertStatement(const tableName: String;
       const Data: TDictionary<String, String>): String;
     procedure updateSummary(const summary: TDictionary < String,
@@ -237,14 +244,17 @@ function TDMStorage.getStatus(): TJsonObject;
 begin
   Result := TJsonObject.Create;
   if (FConnectionSettings = nil) then
-    Result.AddPair('settings', TJsonBool.Create(False))
+    Result.AddPair(CONNECTION_STATUS_TOKEN, TJsonBool.Create(False))
   else
-    Result.AddPair('settings', hideValues(FConnectionSettings,
+    Result.AddPair(CONNECTION_STATUS_TOKEN, hideValues(FConnectionSettings,
       TRegEx.Create('password|user_name', [roIgnoreCase]),
       function(input: String): String
       begin
         Result := TRegEx.Create('.').replace(input, '*');
       end));
+  Result.AddPair(CACHE_SIZE_TOKEN, FCacheSize.ToString);
+  Result.AddPair('records', FCache.Count.ToString);
+
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;

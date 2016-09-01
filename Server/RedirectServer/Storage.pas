@@ -50,10 +50,15 @@ type
     /// <summary> Parameters of connection to a DB.
     /// </summary>
     FConnectionSettings: TJsonObject;
+    /// <summary>The number of objects to accumulate before write them in
+    /// the database </summary>
+    FCacheSize: Integer;
+    /// <summary> The cache of the requests</summary>
+    FCache: TObjectList<TRequestType>;
+    /// <summary> a dumb object used for locking purposes </summary>
+    FLockObject: TObject;
 
   const
-    DRIVER_ID_TOKEN: String = 'DriverID';
-    CONNECTION_DEF_NAME: String = 'Storage_db_con';
     DB_SUMMARY_TABLE_NAME: String = 'summary';
     /// <summary> Constructs an insert-into-table statement for a table with a given name and
     /// column values</summary>
@@ -73,6 +78,8 @@ type
     /// <summary> Connect to a database using given parameters
     /// The parameter is supposed to be not nil</summary>
     procedure connect(const params: TJsonObject);
+    /// <summary> FCacheSize setter</summary>
+    procedure setCacheSize(cacheSize: Integer);
 
     /// <summary> Replace values of keys matching given criteria
     /// by some hash values </summary>
@@ -86,13 +93,24 @@ type
     /// The argument is supposed to be not nil. </summary >
     procedure setConnectionSettings(const parameters: TJsonObject);
 
+    /// <summary> Add the given request to the storage cache. Once its
+    /// size exceeds FCacheSize, it should be written to the database
+    /// </summary>
+    procedure add(const item: TRequestType);
     function save(const items: TObjectList<TRequestType>): Boolean;
+
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     /// <summary> Get the status of the storage</summary>
     function getStatus(): TJsonObject;
 
+    /// <summary> Try to save the cache content to the database and then empty
+    /// the cache </summary>
+    procedure Commit();
+
     property Logger: ILogger write setLogger;
+    property cacheSize: Integer write setCacheSize;
   end;
 
 var
@@ -111,9 +129,19 @@ uses
 destructor TDMStorage.Destroy;
 begin
   FLogger := nil;
+  FCache.Clear;
+  FCache.DisposeOf;
+  FLockObject.DisposeOf;
   if not(FConnectionSettings = nil) then
     FConnectionSettings.DisposeOf;
   inherited;
+end;
+
+constructor TDMStorage.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCache := TObjectList<TRequestType>.Create;
+  FLockObject := TObject.Create;
 end;
 
 procedure TDMStorage.connect(const params: TJsonObject);
@@ -193,9 +221,9 @@ begin
   Values := TStringList.Create;
   for key in Data.keys do
   begin
-    keys.Add(FIELDNAMEWRAPPER + key + FIELDNAMEWRAPPER);
+    keys.add(FIELDNAMEWRAPPER + key + FIELDNAMEWRAPPER);
     value := TRegEx.replace(Data.items[key], '(?<!\\)&', '\\&', [roIgnoreCase]);
-    Values.Add('"' + value + '"')
+    Values.add('"' + value + '"')
   end;
   Result := 'INSERT INTO ' + tableName + ' (' + concatList(keys, FIELDSEPARATOR)
     + ') VALUES (' + concatList(Values, FIELDSEPARATOR) + ');';
@@ -250,12 +278,12 @@ begin
         // update summary
         campaign := item.getCampaign;
         if not(summary.ContainsKey(campaign)) then
-          summary.Add(campaign, TDictionary<String, Integer>.Create);
+          summary.add(campaign, TDictionary<String, Integer>.Create);
         if summary.items[campaign].ContainsKey(tableName) then
           summary.items[campaign].items[tableName] := summary.items[campaign]
             .items[tableName] + 1
         else
-          summary.items[campaign].Add(tableName, 1);
+          summary.items[campaign].add(tableName, 1);
       end;
       updateSummary(summary);
       FDBConn.Commit;
@@ -312,12 +340,12 @@ begin
     Exit;
   fieldNames := TStringList.Create;
   fieldValues := TStringList.Create;
-  fieldNames.Add('`campaign`');
-  fieldValues.Add('"' + line + '"');
+  fieldNames.add('`campaign`');
+  fieldValues.add('"' + line + '"');
   for fieldName in Data.keys do
   begin
-    fieldNames.Add('`' + fieldName + '`');
-    fieldValues.Add(inttostr(Data.items[fieldName]));
+    fieldNames.add('`' + fieldName + '`');
+    fieldValues.add(inttostr(Data.items[fieldName]));
 
   end;
   statement := 'INSERT INTO ' + tableName + ' (' + concatList(fieldNames,
@@ -398,6 +426,46 @@ begin
   Values := Data.Values.ToArray;
   statement := updateStatement(tableName, line, Data);
   FDBConn.ExecSQL(statement, []);
+end;
+
+procedure TDMStorage.setCacheSize(cacheSize: Integer);
+begin
+  if (cacheSize >= 0) then
+    FCacheSize := cacheSize;
+end;
+
+procedure TDMStorage.add(const item: TRequestType);
+begin
+  FCache.add(item);
+  if FCache.Count > FCacheSize then
+    Commit();
+end;
+
+procedure TDMStorage.Commit();
+const
+  TAG: String = 'TDMStorage.Commit';
+var
+  outcome: Boolean;
+begin
+  TMonitor.Enter(FLockObject);
+  try
+    try
+      outcome := save(FCache);
+      if outcome then
+        FCache.Clear
+      else
+        FLogger.logWarning(TAG,
+          'Saving of the statistics to the DB has been postponed.');
+    except
+      on e: Exception do
+      begin
+        FLogger.logException(TAG, e.Message);
+      end;
+    end;
+  finally
+    TMonitor.Exit(FLockObject);
+  end;
+
 end;
 
 end.

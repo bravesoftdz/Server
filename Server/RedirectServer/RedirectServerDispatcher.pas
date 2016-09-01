@@ -445,9 +445,10 @@ begin
   TRedirectController.Route.setLogger(TRedirectController.Logger);
 
   TRedirectController.Storage := TDMStorage.Create(nil);
+  TRedirectController.Storage.CacheSize := 10;
   TRedirectController.Storage.Logger := TRedirectController.Logger;
 
-  TRedirectController.RequestHandler := TRequestHandler.Create(10);
+  TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
 end;
@@ -487,7 +488,7 @@ end;
 
 procedure TRedirectController.flushStatistics(ctx: TWebContext);
 begin
-  RequestHandler.commit();
+  Storage.commit();
 end;
 
 initialization

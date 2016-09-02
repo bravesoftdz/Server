@@ -104,6 +104,10 @@ type
     /// The argument is supposed to be not nil. </summary >
     procedure setConnectionSettings(const parameters: TJsonObject);
 
+    /// <summary> Set properties related to the connection to the database and
+    /// the maximum size of the cache</summary >
+    procedure setProperties(const parameters: TJsonObject);
+
     /// <summary> Add the given request to the storage cache. Once its
     /// size exceeds FCacheSize, it should be written to the database
     /// </summary>
@@ -202,6 +206,30 @@ begin
   connect(FConnectionSettings);
 end;
 
+procedure TDMStorage.setProperties(const parameters: TJsonObject);
+var
+  maxCacheSize, connJV: TJsonValue;
+  maxCacheSizeInt: Integer;
+  connJO: TJsonObject;
+begin
+  maxCacheSize := parameters.Values[MAX_CACHE_SIZE_TOKEN];
+  if not(maxCacheSize = nil) then
+  begin
+    if (maxCacheSize is TJSonNumber) then
+    begin
+      maxCacheSizeInt := (maxCacheSize as TJSonNumber).AsInt;
+      if maxCacheSizeInt >= 0 then
+        FMaxCacheSize := maxCacheSizeInt;
+    end;
+  end;
+  connJV := parameters.Values[CONNECTION_STATUS_TOKEN];
+  if (connJV is TJsonObject) then
+  begin
+    setConnectionSettings(connJV as TJsonObject);
+  end;
+
+end;
+
 procedure TDMStorage.DataModuleCreate(Sender: TObject);
 begin
   if Assigned(FConnectionSettings) then
@@ -256,8 +284,8 @@ begin
       begin
         Result := TRegEx.Create('.').replace(input, '*');
       end));
-  Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSONNumber.Create(FMaxCacheSize));
-  Result.AddPair(CACHE_SIZE_TOKEN, TJSONNumber.Create(FCache.Count));
+  Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSonNumber.Create(FMaxCacheSize));
+  Result.AddPair(CACHE_SIZE_TOKEN, TJSonNumber.Create(FCache.Count));
 
 end;
 

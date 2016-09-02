@@ -431,7 +431,7 @@ begin
   end;
   params := ctx.request.BodyAsJSONObject();
   if not(params = nil) then
-    Storage.setConnectionSettings(params);
+    Storage.setProperties(params);
 end;
 
 { Initialize the server parameters }

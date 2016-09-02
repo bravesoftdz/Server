@@ -52,7 +52,7 @@ type
     FConnectionSettings: TJsonObject;
     /// <summary>The number of objects to accumulate before write them in
     /// the database </summary>
-    FCacheSize: Integer;
+    FMaxCacheSize: Integer;
     /// <summary> The cache of the requests</summary>
     FCache: TObjectList<TRequestType>;
     /// <summary> a dumb object used for locking purposes </summary>
@@ -64,8 +64,12 @@ type
     /// <summary>a name of the token under which the connection-related
     /// data are to be stored into the status object</summary>
     CONNECTION_STATUS_TOKEN = 'connection';
-    /// <summary> token under which the cache size is stored in the status object
-    /// </summary>
+    /// <summary> token under which the max cache size value is stored in the
+    /// status object </summary>
+    MAX_CACHE_SIZE_TOKEN = 'cache size';
+
+    /// <summary> token under which the current cache size value is stored in the
+    /// status object </summary>
     CACHE_SIZE_TOKEN = 'cache size';
     /// <summary> Constructs an insert-into-table statement for a
     /// table with a given name and column values</summary>
@@ -252,8 +256,8 @@ begin
       begin
         Result := TRegEx.Create('.').replace(input, '*');
       end));
-  Result.AddPair(CACHE_SIZE_TOKEN, FCacheSize.ToString);
-  Result.AddPair('records', FCache.Count.ToString);
+  Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSONNumber.Create(FMaxCacheSize));
+  Result.AddPair(CACHE_SIZE_TOKEN, TJSONNumber.Create(FCache.Count));
 
 end;
 
@@ -441,13 +445,13 @@ end;
 procedure TDMStorage.setCacheSize(cacheSize: Integer);
 begin
   if (cacheSize >= 0) then
-    FCacheSize := cacheSize;
+    FMaxCacheSize := cacheSize;
 end;
 
 procedure TDMStorage.add(const item: TRequestType);
 begin
   FCache.add(item);
-  if FCache.Count > FCacheSize then
+  if FCache.Count > FMaxCacheSize then
     Commit();
 end;
 

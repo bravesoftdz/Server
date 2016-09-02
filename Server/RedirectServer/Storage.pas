@@ -66,7 +66,7 @@ type
     CONNECTION_STATUS_TOKEN = 'connection';
     /// <summary> token under which the max cache size value is stored in the
     /// status object </summary>
-    MAX_CACHE_SIZE_TOKEN = 'cache size';
+    MAX_CACHE_SIZE_TOKEN = 'max cache size';
 
     /// <summary> token under which the current cache size value is stored in the
     /// status object </summary>

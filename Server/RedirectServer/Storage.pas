@@ -87,9 +87,9 @@ type
       Integer >> );
     /// <summary> logger setter </summary>
     procedure setLogger(const Logger: ILogger);
-    /// <summary> Connect to a database using given parameters
-    /// The parameter is supposed to be not nil</summary>
-    procedure connect(const params: TJsonObject);
+    /// <summary> Establish connection to a database using parameters
+    /// in TFDConn.</summary>
+    procedure connect();
     /// <summary> FCacheSize setter</summary>
     procedure setCacheSize(cacheSize: Integer);
 
@@ -163,23 +163,12 @@ begin
   FLockObject := TObject.Create;
 end;
 
-procedure TDMStorage.connect(const params: TJsonObject);
+procedure TDMStorage.connect();
 const
   TAG: String = 'TDMStorage.connect';
 var
   pair: TJsonPair;
 begin
-  if (params = nil) then
-  begin
-    if not(FLogger = nil) then
-      FLogger.logWarning(TAG, 'Connection parameters are missing.');
-    Exit();
-  end;
-  Disconnect(FDBConn);
-  for pair in params do
-  begin
-    FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
-  end;
   try
     FDBConn.Connected := True;
     if not(FLogger = nil) then
@@ -199,17 +188,26 @@ begin
   begin
     FDBConn.Connected := False;
     if not(FLogger = nil) then
-      FLogger.logInfo(TAG, 'Disconnect');
+      FLogger.logInfo('TDMStorage.Disconnect', 'Disconnect');
   end;
 end;
 
 procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
+var
+  pair: TJsonPair;
 begin
   /// clean previous settings if they exist
   if not(FConnectionSettings = nil) then
     FConnectionSettings.DisposeOf;
   FConnectionSettings := parameters.Clone as TJsonObject;
-  connect(FConnectionSettings);
+  if not(FConnectionSettings = nil) then
+  begin
+    for pair in FConnectionSettings do
+    begin
+      FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
+    end;
+  end;
+  connect();
 end;
 
 procedure TDMStorage.setProperties(const parameters: TJsonObject);
@@ -237,8 +235,8 @@ end;
 
 procedure TDMStorage.DataModuleCreate(Sender: TObject);
 begin
-  if Assigned(FConnectionSettings) then
-    connect(FConnectionSettings);
+//  if Assigned(FConnectionSettings) then
+//    connect();
 end;
 
 procedure TDMStorage.DataModuleDestroy(Sender: TObject);

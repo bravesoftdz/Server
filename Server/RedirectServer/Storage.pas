@@ -82,6 +82,7 @@ type
     procedure createSummaryRow(const tableName, line: String;
       const Data: TDictionary<String, Integer>);
     function concatList(const list: TStringList; const separator: Char): String;
+    /// <summary> Empty the nested dictionary</summary>
     procedure empty(const summary: TDictionary < String, TDictionary < String,
       Integer >> );
     /// <summary> logger setter </summary>
@@ -162,10 +163,8 @@ end;
 procedure TDMStorage.connect(const params: TJsonObject);
 const
   TAG: String = 'TDMStorage.connect';
-  KEY_VALUE_SEP: String = '=';
 var
   pair: TJsonPair;
-  driverId: String;
 begin
   if (params = nil) then
   begin
@@ -196,8 +195,6 @@ begin
 end;
 
 procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
-var
-  item: TJsonValue;
 begin
   /// clean previous settings if they exist
   if not(FConnectionSettings = nil) then
@@ -210,7 +207,6 @@ procedure TDMStorage.setProperties(const parameters: TJsonObject);
 var
   maxCacheSize, connJV: TJsonValue;
   maxCacheSizeInt: Integer;
-  connJO: TJsonObject;
 begin
   maxCacheSize := parameters.Values[MAX_CACHE_SIZE_TOKEN];
   if not(maxCacheSize = nil) then
@@ -344,9 +340,6 @@ begin
   end;
 end;
 
-{
-  Empty the nested dictionary
-}
 procedure TDMStorage.empty(const summary: TDictionary < String,
   TDictionary < String, Integer >> );
 var
@@ -403,7 +396,6 @@ procedure TDMStorage.updateSummary(const summary: TDictionary < String,
 var
   line: String;
 var
-  tableName: String;
   rowFetch: Variant;
 begin
   for line in summary.keys do
@@ -421,7 +413,7 @@ function TDMStorage.hideValues(const Data: TJsonObject; const crit: TRegEx;
 callback: TFunc<String, String>): TJsonObject;
 var
   pair: TJsonPair;
-  key, value: String;
+  key: String;
 begin
   Result := TJsonObject.Create;
   for pair in Data do

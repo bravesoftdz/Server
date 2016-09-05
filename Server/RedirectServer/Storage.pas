@@ -99,6 +99,9 @@ type
     // const replace: String): TJsonObject;
     function hideValues(const Data: TJsonObject; const crit: TRegEx;
       callback: TFunc<String, String>): TJsonObject;
+    /// <summary> Close (if it is open) the connection to the database
+    /// established by means of ConnDef</summary>
+    procedure Disconnect(const ConnDef: TFDConnection);
 
   public
     /// <summary> Set connection settings
@@ -172,16 +175,12 @@ begin
       FLogger.logWarning(TAG, 'Connection parameters are missing.');
     Exit();
   end;
+  Disconnect(FDBConn);
   for pair in params do
   begin
     FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
   end;
   try
-    if FDBConn.Connected then
-    begin
-      FDBConn.Connected := False;
-      FLogger.logInfo(TAG, 'Disconnect');
-    end;
     FDBConn.Connected := True;
     if not(FLogger = nil) then
       FLogger.logInfo(TAG, 'Connected!');
@@ -191,6 +190,16 @@ begin
       if not(FLogger = nil) then
         FLogger.logException(TAG, e.Message);
     end;
+  end;
+end;
+
+procedure TDMStorage.Disconnect(const ConnDef: TFDConnection);
+begin
+  if (not(FDBConn = nil)) AND (FDBConn.Connected) then
+  begin
+    FDBConn.Connected := False;
+    if not(FLogger = nil) then
+      FLogger.logInfo(TAG, 'Disconnect');
   end;
 end;
 

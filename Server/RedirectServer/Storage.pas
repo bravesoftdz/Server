@@ -235,8 +235,6 @@ end;
 
 procedure TDMStorage.DataModuleCreate(Sender: TObject);
 begin
-//  if Assigned(FConnectionSettings) then
-//    connect();
 end;
 
 procedure TDMStorage.DataModuleDestroy(Sender: TObject);
@@ -307,44 +305,49 @@ var
 begin
   Result := False;
   if not(FDBConn.Connected) then
-    FLogger.logWarning(TAG, 'The database connection is missing.')
-  else
   begin
-    summary := TDictionary < String, TDictionary < String, Integer >>.Create;
-    try
-      FDBConn.StartTransaction;
-      for item in items do
-      begin
-        tableName := item.getMarker;
-        Values := item.getValues;
-        statement := insertStatement(tableName, Values);
-        Values.Clear;
-        FDBConn.ExecSQL(statement, []);
-        // update summary
-        campaign := item.getCampaign;
-        if not(summary.ContainsKey(campaign)) then
-          summary.add(campaign, TDictionary<String, Integer>.Create);
-        if summary.items[campaign].ContainsKey(tableName) then
-          summary.items[campaign].items[tableName] := summary.items[campaign]
-            .items[tableName] + 1
-        else
-          summary.items[campaign].add(tableName, 1);
-      end;
-      updateSummary(summary);
-      FDBConn.Commit;
-      Result := True;
-    except
-      on e: Exception do
-      begin
-        FDBConn.Rollback;
-        FLogger.logException(TAG, e.Message);
-        raise;
-      end;
-    end;
-    empty(summary);
-    summary.DisposeOf;
-
+    connect();
   end;
+  if not(FDBConn.Connected) then
+  begin
+    if not(FLogger = nil) then
+      FLogger.logWarning(TAG, 'Failed to connect to the database.');
+    Exit();
+  End;
+
+  summary := TDictionary < String, TDictionary < String, Integer >>.Create;
+  try
+    FDBConn.StartTransaction;
+    for item in items do
+    begin
+      tableName := item.getMarker;
+      Values := item.getValues;
+      statement := insertStatement(tableName, Values);
+      Values.Clear;
+      FDBConn.ExecSQL(statement, []);
+      // update summary
+      campaign := item.getCampaign;
+      if not(summary.ContainsKey(campaign)) then
+        summary.add(campaign, TDictionary<String, Integer>.Create);
+      if summary.items[campaign].ContainsKey(tableName) then
+        summary.items[campaign].items[tableName] := summary.items[campaign]
+          .items[tableName] + 1
+      else
+        summary.items[campaign].add(tableName, 1);
+    end;
+    updateSummary(summary);
+    FDBConn.Commit;
+    Result := True;
+  except
+    on e: Exception do
+    begin
+      FDBConn.Rollback;
+      FLogger.logException(TAG, e.Message);
+      raise;
+    end;
+  end;
+  empty(summary);
+  summary.DisposeOf;
 end;
 
 procedure TDMStorage.empty(const summary: TDictionary < String,

@@ -36,7 +36,6 @@ type
     FDBConn: TFDConnection;
     FDQuery1: TFDQuery;
     FDMoniRemoteClientLink1: TFDMoniRemoteClientLink;
-    procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     /// <summary> Create an UPDATE statement.
     /// No placeholders are used, so the resulting string is of the following form
@@ -207,7 +206,6 @@ begin
       FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
     end;
   end;
-  connect();
 end;
 
 procedure TDMStorage.setProperties(const parameters: TJsonObject);
@@ -231,10 +229,6 @@ begin
     setConnectionSettings(connJV as TJsonObject);
   end;
 
-end;
-
-procedure TDMStorage.DataModuleCreate(Sender: TObject);
-begin
 end;
 
 procedure TDMStorage.DataModuleDestroy(Sender: TObject);

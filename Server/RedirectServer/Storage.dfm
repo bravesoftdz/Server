@@ -1,6 +1,5 @@
 object DMStorage: TDMStorage
   OldCreateOrder = False
-  OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
   Height = 461
   Width = 638

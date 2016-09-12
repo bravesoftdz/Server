@@ -295,7 +295,6 @@ var
   statement, tableName, campaign: String;
   Values: TDictionary<String, String>;
   summary: TDictionary<String, TDictionary<String, Integer>>;
-
 begin
   Result := False;
   if not(FDBConn.Connected) then

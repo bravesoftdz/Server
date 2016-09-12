@@ -120,8 +120,24 @@ type
     [MVCPath('/storage/set')]
     [MVCHTTPMethod([httpPUT])]
     procedure setStorageProperties(ctx: TWebContext);
-
+    ///
     /// ================== Storage END   ==========
+
+    /// ================== Image upload START =====
+    ///
+    /// <summary>Save image corresponding to a given article of a given campaign
+    /// </summary>
+    /// <return>a string representation of the image uri after saving </return>
+    [MVCPath('/save/image/($campaign)/($article)')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure SaveImage(ctx: TWebContext);
+
+    /// <summary>Delete an image </summary>
+    [MVCPath('/delete/image/($campaign)/($article)/($imageName)')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure DeleteImage(ctx: TWebContext);
+    ///
+    /// ================== Image upload END =======
 
     [MVCPath('/statistics/commit')]
     [MVCHTTPMethod([httpPUT])]
@@ -238,6 +254,11 @@ begin
   TRedirectController.Route := nil;
   TRedirectController.Logger := nil;
 
+end;
+
+procedure TRedirectController.DeleteImage(ctx: TWebContext);
+begin
+  /// TODO
 end;
 
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
@@ -358,6 +379,31 @@ procedure TRedirectController.OnBeforeAction(Context: TWebContext;
 const AActionNAme: string; var Handled: Boolean);
 begin
   // inherited;
+end;
+
+procedure TRedirectController.SaveImage(ctx: TWebContext);
+var
+  fname: string;
+  I: Integer;
+  fs: TFileStream;
+begin
+  TDirectory.CreateDirectory(ImgDir);
+  for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
+  begin
+    fname := String(ctx.request.Files[I].FileName);
+    fname := TPath.GetFileName(fname.Trim(['"']));
+    if not TPath.HasValidFileNameChars(fname, false) then
+      raise EMVCException.Create
+        (fname + ' is not a valid filename for the hosting OS');
+    fs := TFile.Create(TPath.Combine(ImgDir, fname));
+    try
+      fs.CopyFrom(ctx.request.Files[I].Stream, 0);
+    finally
+      fs.DisposeOf;
+    end;
+  end;
+
+  Redirect('/file/list');
 end;
 
 procedure TRedirectController.SendImage(const path: String;

@@ -387,7 +387,9 @@ var
   I: Integer;
   fs: TFileStream;
 begin
-  TDirectory.CreateDirectory(ImgDir);
+  // if DirectoryExists(ImgDir) then
+  // begin
+//  TDirectory.CreateDirectory(ImgDir);
   for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
   begin
     fname := String(ctx.request.Files[I].FileName);
@@ -402,8 +404,8 @@ begin
       fs.DisposeOf;
     end;
   end;
-
   Redirect('/file/list');
+  // end;
 end;
 
 procedure TRedirectController.SendImage(const path: String;

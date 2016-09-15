@@ -323,8 +323,8 @@ begin
     status.AddPair('router status', Route.getStatus);
   if not(Storage = nil) then
     status.AddPair('storage status', Storage.getStatus);
-  if not(ImgDir.isEmpty) then
-    status.AddPair(IMAGE_DIR_TOKEN, ImgDir);
+  if not(TRedirectController.ImgDir.isEmpty) then
+    status.AddPair(IMAGE_DIR_TOKEN, TRedirectController.ImgDir);
   Render(status);
 end;
 
@@ -387,9 +387,11 @@ var
   I: Integer;
   fs: TFileStream;
 begin
-  // if DirectoryExists(ImgDir) then
-  // begin
-//  TDirectory.CreateDirectory(ImgDir);
+  if not(DirectoryExists(ImgDir)) then
+  begin
+    Render('image folder is not set');
+    Exit();
+  end;
   for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
   begin
     fname := String(ctx.request.Files[I].FileName);
@@ -404,8 +406,7 @@ begin
       fs.DisposeOf;
     end;
   end;
-  Redirect('/file/list');
-  // end;
+  Redirect('ok');
 end;
 
 procedure TRedirectController.SendImage(const path: String;
@@ -432,7 +433,7 @@ begin
     + ')*$', '');
   /// remove duplicate path delimiters
   dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
-  if not(dirName.isEmpty) then
+  if not(dirNameTmp.isEmpty) then
     TRedirectController.ImgDir := IncludeTrailingPathDelimiter(dirName);
 end;
 

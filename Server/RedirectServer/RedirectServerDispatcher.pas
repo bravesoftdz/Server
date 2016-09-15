@@ -17,6 +17,9 @@ type
   private const
     /// <summary>token corrsponding to the folder containing images</summary>
     IMAGE_DIR_TOKEN: String = 'images dir';
+    LOGGER_TOKEN: String = 'logger status';
+    ROUTER_TOKEN: String = 'router status';
+    STORAGE_TOKEN: String = 'storage status';
     // class var Settings: TSettings;
     class var Route: IRoute;
     class var RequestHandler: IRequestHandler;
@@ -318,13 +321,15 @@ var
 begin
   status := getStatus();
   if not(Logger = nil) then
-    status.AddPair('logger status', Logger.getStatus);
+    status.AddPair(LOGGER_TOKEN, Logger.getStatus);
   if not(Route = nil) then
-    status.AddPair('router status', Route.getStatus);
+    status.AddPair(ROUTER_TOKEN, Route.getStatus);
   if not(Storage = nil) then
-    status.AddPair('storage status', Storage.getStatus);
-  if not(TRedirectController.ImgDir.isEmpty) then
-    status.AddPair(IMAGE_DIR_TOKEN, TRedirectController.ImgDir);
+    status.AddPair(STORAGE_TOKEN, Storage.getStatus);
+  if not(ImgDir.isEmpty) then
+    status.AddPair(IMAGE_DIR_TOKEN, ImgDir)
+  else
+    status.AddPair(IMAGE_DIR_TOKEN, TJSONNull.Create);
   Render(status);
 end;
 
@@ -434,7 +439,7 @@ begin
   /// remove duplicate path delimiters
   dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
   if not(dirNameTmp.isEmpty) then
-    TRedirectController.ImgDir := IncludeTrailingPathDelimiter(dirName);
+    ImgDir := IncludeTrailingPathDelimiter(dirNameTmp);
 end;
 
 procedure TRedirectController.SetImagesDir(ctx: TWebContext);

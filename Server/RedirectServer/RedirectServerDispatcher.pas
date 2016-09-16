@@ -411,7 +411,7 @@ begin
       fs.DisposeOf;
     end;
   end;
-  Redirect('ok');
+  Render('ok');
 end;
 
 procedure TRedirectController.SendImage(const path: String;
@@ -494,6 +494,8 @@ begin
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
+
+  TRedirectController.ImgDir := 'images' + PathDelim;
 end;
 
 procedure TRedirectController.Echo(ctx: TWebContext);

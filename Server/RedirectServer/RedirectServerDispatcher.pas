@@ -443,19 +443,8 @@ begin
 end;
 
 procedure TRedirectController.SetImagesDir(ctx: TWebContext);
-var
-  request: TMVCWebRequest;
-  params: TJsonObject;
-  item: TJSonValue;
-  dirName: String;
 begin
-  request := ctx.request;
-  params := request.BodyAsJSONObject();
-  item := params.GetValue(IMAGE_DIR_TOKEN);
-  if (item = nil) then
-    Exit();
-  dirName := item.Value;
-  SetImagesDir(dirName);
+  SetImagesDir(ctx.request.Body);
 end;
 
 procedure TRedirectController.setLoggerProperty(ctx: TWebContext);

@@ -28,7 +28,8 @@ uses
   RequestView in 'RequestView.pas' {$R *.res},
   Logger in 'Logger.pas' {$R *.res},
   RedirectServerDispatcher in 'RedirectServerDispatcher.pas' {$R *.res},
-  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas';
+  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas' {$R *.res},
+  ImageStorage in 'ImageStorage.pas';
 
 {$R *.res}
 

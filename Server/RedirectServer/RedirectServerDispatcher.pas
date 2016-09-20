@@ -8,7 +8,7 @@ uses
   Route, System.Classes,
   InterfaceRoute, System.JSON, System.Generics.Collections,
   Settings, Storage, Logger, RequestHandler, InterfaceLogger,
-  MVCFramework.Commons;
+  MVCFramework.Commons, ImageStorage;
 
 type
 
@@ -25,6 +25,7 @@ type
     class var RequestHandler: IRequestHandler;
     class var Storage: TDMStorage;
     class var Logger: ILogger;
+    class var ImageStorage: TImageStorage;
     class var ImgDir: String;
 
     procedure SendImage(const path: String; const ctx: TWebContext);
@@ -162,7 +163,7 @@ implementation
 uses System.IOUtils, System.SysUtils, System.StrUtils,
   FireDAC.Comp.Client, Vcl.Forms, InterfaceAuthentication, System.DateUtils,
   RequestClick, RequestView, SimpleAuthentification, MessageCodes,
-  System.RegularExpressions, IdURI, System.Types;
+  System.RegularExpressions, IdURI, System.Types, Web.HTTPApp;
 
 { TRedirectController }
 
@@ -392,6 +393,7 @@ var
   I: Integer;
   fs: TFileStream;
   campaign, article, baseDir, path: String;
+  file1: TAbstractWebRequestFile;
 begin
   if not(DirectoryExists(ImgDir)) then
   begin
@@ -400,6 +402,7 @@ begin
   end;
   campaign := ctx.request.params['campaign'];
   article := ctx.request.params['article'];
+  file1 := ctx.request.Files[1];
   for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
   begin
     fname := String(ctx.request.Files[I].FileName);
@@ -503,6 +506,7 @@ begin
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
 
   TRedirectController.ImgDir := 'images' + PathDelim;
+  TRedirectController.ImageStorage := TImageStorage.Create('images')
 end;
 
 procedure TRedirectController.Echo(ctx: TWebContext);

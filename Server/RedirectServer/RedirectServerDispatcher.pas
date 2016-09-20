@@ -253,6 +253,7 @@ class procedure TRedirectController.StopServer;
 begin
   TRedirectController.Logger.logInfo('TAdvStatsController.StopServer',
     'Stop the server');
+  TRedirectController.ImageStorage.DisposeOf;
   TRedirectController.RequestHandler := nil;
   TRedirectController.Storage.DisposeOf;
   TRedirectController.Route := nil;
@@ -392,34 +393,16 @@ var
   fname: string;
   I: Integer;
   fs: TFileStream;
+  numOfFiles: Integer;
   campaign, article, baseDir, path: String;
-  file1: TAbstractWebRequestFile;
 begin
-  if not(DirectoryExists(ImgDir)) then
-  begin
-    Render('image folder is not set');
-    Exit();
-  end;
   campaign := ctx.request.params['campaign'];
   article := ctx.request.params['article'];
-  file1 := ctx.request.Files[1];
-  for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
+  baseDir := TPath.Combine(TPath.Combine(ImgDir, campaign), article);
+  numOfFiles := ctx.request.RawWebRequest.Files.Count;
+  for I := 0 to numOfFiles - 1 do
   begin
-    fname := String(ctx.request.Files[I].FileName);
-    fname := TPath.GetFileName(fname.Trim(['"']));
-    if not TPath.HasValidFileNameChars(fname, false) then
-      raise EMVCException.Create
-        (fname + ' is not a valid filename for the hosting OS');
-    baseDir := TPath.Combine(TPath.Combine(ImgDir, campaign), article);
-    if not TDirectory.Exists(baseDir, false) then
-      TDirectory.CreateDirectory(baseDir);
-    path := TPath.Combine(baseDir, fname);
-    fs := TFile.Create(path);
-    try
-      fs.CopyFrom(ctx.request.Files[I].Stream, 0);
-    finally
-      fs.DisposeOf;
-    end;
+    ImageStorage.saveFile(baseDir, ctx.request.Files[I]);
   end;
   Render(path);
 end;

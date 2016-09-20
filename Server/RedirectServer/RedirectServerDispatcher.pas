@@ -391,7 +391,7 @@ var
   fname: string;
   I: Integer;
   fs: TFileStream;
-  campaign, imageName, path: String;
+  campaign, article, baseDir, path: String;
 begin
   if not(DirectoryExists(ImgDir)) then
   begin
@@ -399,7 +399,7 @@ begin
     Exit();
   end;
   campaign := ctx.request.params['campaign'];
-  imageName := ctx.request.params['img'];
+  article := ctx.request.params['article'];
   for I := 0 to ctx.request.RawWebRequest.Files.Count - 1 do
   begin
     fname := String(ctx.request.Files[I].FileName);
@@ -407,7 +407,10 @@ begin
     if not TPath.HasValidFileNameChars(fname, false) then
       raise EMVCException.Create
         (fname + ' is not a valid filename for the hosting OS');
-    path := TPath.Combine(ImgDir + campaign + PathDelim + imageName, fname);
+    baseDir := TPath.Combine(TPath.Combine(ImgDir, campaign), article);
+    if not TDirectory.Exists(baseDir, false) then
+      TDirectory.CreateDirectory(baseDir);
+    path := TPath.Combine(baseDir, fname);
     fs := TFile.Create(path);
     try
       fs.CopyFrom(ctx.request.Files[I].Stream, 0);
@@ -415,7 +418,7 @@ begin
       fs.DisposeOf;
     end;
   end;
-  Render('ok');
+  Render(path);
 end;
 
 procedure TRedirectController.SendImage(const path: String;

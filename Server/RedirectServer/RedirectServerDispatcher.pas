@@ -16,7 +16,7 @@ type
   TRedirectController = class abstract(TBaseController)
   private const
     /// <summary>token corrsponding to the folder containing images</summary>
-    IMAGE_DIR_TOKEN: String = 'images dir';
+    IMAGE_STORAGE_TOKEN: String = 'images storage status';
     LOGGER_TOKEN: String = 'logger status';
     ROUTER_TOKEN: String = 'router status';
     STORAGE_TOKEN: String = 'storage status';
@@ -26,7 +26,6 @@ type
     class var Storage: TDMStorage;
     class var Logger: ILogger;
     class var ImageStorage: TImageStorage;
-    class var ImgDir: String;
 
     procedure SendImage(const path: String; const ctx: TWebContext);
     procedure ArchiveAndRedirect(const campaign, article, track: String;
@@ -36,8 +35,6 @@ type
       const params: TDictionary<String, String>): String;
     class procedure StartServer();
     class procedure StopServer();
-    /// <summary>Get json object containing server proper parameters</summary>
-    function getStatus(): TJsonObject;
     /// <summary>Validate given argument and in case of success, set
     /// the image dir to that value.
     /// A valid directory name may contain only alphanumeric symbols, underscore
@@ -321,24 +318,16 @@ procedure TRedirectController.getStatusComponents(ctx: TWebContext);
 var
   status: TJsonObject;
 begin
-  status := getStatus();
+  status := TJsonObject.Create;
   if not(Logger = nil) then
     status.AddPair(LOGGER_TOKEN, Logger.getStatus);
   if not(Route = nil) then
     status.AddPair(ROUTER_TOKEN, Route.getStatus);
   if not(Storage = nil) then
     status.AddPair(STORAGE_TOKEN, Storage.getStatus);
-  if not(ImgDir.isEmpty) then
-    status.AddPair(IMAGE_DIR_TOKEN, ImgDir)
-  else
-    status.AddPair(IMAGE_DIR_TOKEN, TJSONNull.Create);
+  if not(ImageStorage = nil) then
+    status.AddPair(IMAGE_STORAGE_TOKEN, ImageStorage.getStatus);
   Render(status);
-end;
-
-function TRedirectController.getStatus: TJsonObject;
-begin
-  Result := TJsonObject.Create;
-  Result.AddPair(IMAGE_DIR_TOKEN, ImgDir);
 end;
 
 procedure TRedirectController.getCampaignImage(ctx: TWebContext);
@@ -394,15 +383,15 @@ var
   I: Integer;
   fs: TFileStream;
   numOfFiles: Integer;
-  campaign, article, baseDir, path: String;
+  campaign, article, dir, path: String;
 begin
   campaign := ctx.request.params['campaign'];
   article := ctx.request.params['article'];
-  baseDir := TPath.Combine(TPath.Combine(ImgDir, campaign), article);
+  dir := campaign + PathDelim + article + PathDelim;
   numOfFiles := ctx.request.RawWebRequest.Files.Count;
   for I := 0 to numOfFiles - 1 do
   begin
-    ImageStorage.saveFile(baseDir, ctx.request.Files[I]);
+    ImageStorage.saveFile(dir, ctx.request.Files[I]);
   end;
   Render(path);
 end;
@@ -412,27 +401,14 @@ const ctx: TWebContext);
 var
   filePath: String;
 begin
-  filePath := ImgDir + path;
+  filePath := ImageStorage.getAbsolutePath(path);
   if fileExists(filePath) then
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 
 procedure TRedirectController.SetImagesDir(const dirName: String);
-var
-  regex: TRegEx;
-  dirNameTmp: String;
 begin
-  /// a pattern for invalid folder names
-  regex := TRegEx.Create('[^a-zA-Z0-9_\' + PathDelim + ']');
-  if (regex.isMatch(dirName)) then
-    Exit;
-  /// remove trailing path delimiters
-  dirNameTmp := TRegEx.Replace(dirName, '^(\' + PathDelim + ')*|(\' + PathDelim
-    + ')*$', '');
-  /// remove duplicate path delimiters
-  dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
-  if not(dirNameTmp.isEmpty) then
-    ImgDir := IncludeTrailingPathDelimiter(dirNameTmp);
+  ImageStorage.BaseDir := dirName;
 end;
 
 procedure TRedirectController.SetImagesDir(ctx: TWebContext);
@@ -488,8 +464,7 @@ begin
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
 
-  TRedirectController.ImgDir := 'images' + PathDelim;
-  TRedirectController.ImageStorage := TImageStorage.Create('images')
+  TRedirectController.ImageStorage := TImageStorage.Create('images' + PathDelim)
 end;
 
 procedure TRedirectController.Echo(ctx: TWebContext);

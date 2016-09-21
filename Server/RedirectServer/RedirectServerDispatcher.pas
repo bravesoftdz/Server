@@ -337,7 +337,7 @@ var
 begin
   campaign := ctx.request.params['campaign'];
   imageName := ctx.request.params['img'];
-  filePath := campaign + '/' + imageName;
+  filePath := campaign + PathDelim + imageName;
   SendImage(filePath, ctx);
   ctx.Response.ContentType := TMVCMediaType.IMAGE_PNG + ';charset=UTF-16';
 end;
@@ -356,7 +356,7 @@ begin
   trackCode := request.params['trackCode'];
   ip := request.ClientIP;
   userAgent := request.Headers['User-Agent'];
-  filePath := campaign + '/' + imageName;
+  filePath := campaign + PathDelim + imageName;
   TThread.CreateAnonymousThread(
     procedure
     begin

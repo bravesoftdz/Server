@@ -12,7 +12,7 @@ type
     /// set the base dir
     procedure setBaseDir(const dir: String);
     /// return true if there exists a file with given file path.
-    ///  The file path is relative w.r.t. base directory
+    /// The file path is relative w.r.t. base directory
     function ImageExists(const path: String): Boolean;
 
   const
@@ -36,6 +36,9 @@ type
 
     /// append given path to the base directory
     function getAbsolutePath(const path: String): String;
+    /// delete an image located at given path.
+    /// The path is relative with respect to the base directory
+    function DeleteImage(const path: String): Boolean;
 
     property BaseDir: String read BaseDirName write setBaseDir;
   end;
@@ -54,6 +57,12 @@ begin
   Self.BaseDirName := BaseDirName;
 end;
 
+function TImageStorage.DeleteImage(const path: String): Boolean;
+begin
+  /// TODO
+  Result := False;
+end;
+
 function TImageStorage.getAbsolutePath(const path: String): String;
 begin
   Result := TPath.Combine(BaseDirName, path);
@@ -67,7 +76,7 @@ end;
 
 function TImageStorage.ImageExists(const path: String): Boolean;
 begin
- Result := FileExists(TPath.Combine(BaseDirName, path))
+  Result := FileExists(TPath.Combine(BaseDirName, path))
 end;
 
 function TImageStorage.saveFile(const DirName: String;
@@ -80,8 +89,8 @@ var
 begin
   fname := TPath.GetFileName(AFile.FileName.Trim(['"']));
   Result := False;
-  if not(ImageExists(TPath.Combine(DirName, fname))) and TPath.HasValidFileNameChars(fname,
-    False) then
+  if not(ImageExists(TPath.Combine(DirName, fname))) and
+    TPath.HasValidFileNameChars(fname, False) then
   begin
     BaseDir := TPath.Combine(BaseDirName, DirName);
     if not TDirectory.Exists(BaseDir, False) then

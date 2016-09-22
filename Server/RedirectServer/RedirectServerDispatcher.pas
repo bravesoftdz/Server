@@ -42,6 +42,8 @@ type
     procedure SetImagesDir(const dirName: String); overload;
 
     procedure SaveImage(const dir: String; const ctx: TWebContext);
+    /// Delete an image in a given location inside the image storage
+    function DeleteImage(const path: String): Boolean;
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -142,9 +144,14 @@ type
     procedure SaveCampaignImage(ctx: TWebContext);
 
     /// <summary>Delete an image </summary>
-    [MVCPath('/delete/image/($imageName)')]
+    [MVCPath('/delete/image/($image)')]
     [MVCHTTPMethod([httpPOST])]
-    procedure DeleteImage(ctx: TWebContext);
+    procedure DeleteCommonImage(ctx: TWebContext);
+
+    /// <summary>Delete an image </summary>
+    [MVCPath('/delete/image/($campaign)/($image)')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure DeleteCampaignImage(ctx: TWebContext);
     ///
     /// ================== Image upload END =======
 
@@ -266,9 +273,27 @@ begin
 
 end;
 
-procedure TRedirectController.DeleteImage(ctx: TWebContext);
+procedure TRedirectController.DeleteCampaignImage(ctx: TWebContext);
+var
+  path: String;
+  outcome: Boolean;
 begin
-  /// TODO
+  path := TPath.Combine(ctx.request.params['campaign'],
+    ctx.request.params['image']);
+  DeleteImage(path);
+end;
+
+procedure TRedirectController.DeleteCommonImage(ctx: TWebContext);
+begin
+  DeleteImage(ctx.request.params['image']);
+end;
+
+function TRedirectController.DeleteImage(const path: String): Boolean;
+var
+  outcome: Boolean;
+begin
+  outcome := TImageStorage.DeleteImage(path);
+  Render(outcome);
 end;
 
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);

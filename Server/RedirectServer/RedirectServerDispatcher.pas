@@ -43,7 +43,7 @@ type
 
     procedure SaveImage(const dir: String; const ctx: TWebContext);
     /// Delete an image in a given location inside the image storage
-    function DeleteImage(const path: String): Boolean;
+    procedure DeleteImage(const path: String);
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -288,12 +288,15 @@ begin
   DeleteImage(ctx.request.params['image']);
 end;
 
-function TRedirectController.DeleteImage(const path: String): Boolean;
+procedure TRedirectController.DeleteImage(const path: String);
 var
   outcome: Boolean;
+  res: TJsonObject;
 begin
-  outcome := TImageStorage.DeleteImage(path);
-  Render(outcome);
+  outcome := ImageStorage.DeleteImage(path);
+  res := TJsonObject.Create();
+  res.AddPair(path, TJSonBool.Create(outcome));
+  Render(res);
 end;
 
 procedure TRedirectController.DeleteRoutes(ctx: TWebContext);

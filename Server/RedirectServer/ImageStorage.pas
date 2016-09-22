@@ -73,6 +73,7 @@ begin
   fname := TPath.GetFileName(AFile.FileName.Trim(['"']));
   if TPath.HasValidFileNameChars(fname, false) then
   begin
+    BaseDir := TPath.Combine(BaseDirName, DirName);
     if not TDirectory.Exists(BaseDir, false) then
       TDirectory.CreateDirectory(BaseDir);
     path := TPath.Combine(BaseDir, fname);
@@ -98,8 +99,8 @@ begin
   if (regex.isMatch(dir)) then
     Exit;
   /// remove trailing path delimiters
-  dirNameTmp := TRegEx.Replace(dir, '^(\' + PathDelim + ')*|(\' + PathDelim
-    + ')*$', '');
+  dirNameTmp := TRegEx.Replace(dir, '^(\' + PathDelim + ')*|(\' + PathDelim +
+    ')*$', '');
   /// remove duplicate path delimiters
   dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
   if not(dirNameTmp.isEmpty) then

@@ -129,12 +129,18 @@ type
     /// <summary>Save image corresponding to a given article of a given campaign
     /// </summary>
     /// <return>a string representation of the image uri after saving </return>
-    [MVCPath('/save/image/($campaign)/($article)')]
+    [MVCPath('/save/image')]
     [MVCHTTPMethod([httpPOST])]
     procedure SaveImage(ctx: TWebContext);
 
+    /// <summary>Save image corresponding to a given campaign</summary>
+    /// <return>a string representation of the image uri after saving </return>
+    [MVCPath('/save/image/($campaign)')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure SaveCampaignImage(ctx: TWebContext);
+
     /// <summary>Delete an image </summary>
-    [MVCPath('/delete/image/($campaign)/($article)/($imageName)')]
+    [MVCPath('/delete/image/($imageName)')]
     [MVCHTTPMethod([httpPOST])]
     procedure DeleteImage(ctx: TWebContext);
     ///
@@ -339,7 +345,7 @@ begin
   imageName := ctx.request.params['img'];
   filePath := campaign + PathDelim + imageName;
   SendImage(filePath, ctx);
-  ctx.Response.ContentType := TMVCMediaType.IMAGE_PNG + ';charset=UTF-16';
+  // ctx.Response.ContentType := TMVCMediaType.IMAGE_PNG + ';charset=UTF-16';
 end;
 
 procedure TRedirectController.getCampaignImageWithTrack(ctx: TWebContext);
@@ -377,21 +383,30 @@ begin
   // inherited;
 end;
 
-procedure TRedirectController.SaveImage(ctx: TWebContext);
+procedure TRedirectController.SaveCampaignImage(ctx: TWebContext);
 var
-  fname: string;
-  I: Integer;
-  fs: TFileStream;
-  numOfFiles: Integer;
-  campaign, article, dir, path: String;
+  I, numOfFiles: Integer;
+  campaign, path: String;
 begin
   campaign := ctx.request.params['campaign'];
-  article := ctx.request.params['article'];
-  dir := campaign + PathDelim + article + PathDelim;
   numOfFiles := ctx.request.RawWebRequest.Files.Count;
   for I := 0 to numOfFiles - 1 do
   begin
-    ImageStorage.saveFile(dir, ctx.request.Files[I]);
+    ImageStorage.saveFile(campaign, ctx.request.Files[I]);
+  end;
+  Render(path);
+end;
+
+procedure TRedirectController.SaveImage(ctx: TWebContext);
+var
+  fs: TFileStream;
+  I, numOfFiles: Integer;
+  path: String;
+begin
+  numOfFiles := ctx.request.RawWebRequest.Files.Count;
+  for I := 0 to numOfFiles - 1 do
+  begin
+    ImageStorage.saveFile('', ctx.request.Files[I]);
   end;
   Render(path);
 end;

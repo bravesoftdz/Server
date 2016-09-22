@@ -11,6 +11,9 @@ type
     BaseDirName: String;
     /// set the base dir
     procedure setBaseDir(const dir: String);
+    /// return true if there exists a file with given file path.
+    ///  The file path is relative w.r.t. base directory
+    function ImageExists(const path: String): Boolean;
 
   const
     /// <summary>table into which the overall summary is to be written</summary>
@@ -19,10 +22,10 @@ type
   public
     /// <summary>save a file into a given folder.
     /// DirName is a relative path with respect to BaseDirName.
-    /// Returns a path to the saved file.
+    /// Returns true in case of success, false otherwise.
     /// </summary>
     function saveFile(const DirName: String;
-      const AFile: TAbstractWebRequestFile): String;
+      const AFile: TAbstractWebRequestFile): Boolean;
     /// <summary>
     /// Instantiate an ImageStorage object with BaseDirName being a relative
     /// path with respect to the server executable path.
@@ -62,31 +65,37 @@ begin
   Result.AddPair(IMAGE_DIR_TOKEN, TJSonString.Create(BaseDirName));
 end;
 
+function TImageStorage.ImageExists(const path: String): Boolean;
+begin
+ Result := FileExists(TPath.Combine(BaseDirName, path))
+end;
+
 function TImageStorage.saveFile(const DirName: String;
-  const AFile: TAbstractWebRequestFile): String;
+  const AFile: TAbstractWebRequestFile): Boolean;
 var
-  fname: string;
   I: Integer;
+  outputStreamSize, inputStreamSize: Int64;
   fs: TFileStream;
-  campaign, article, BaseDir, path: String;
+  fname, BaseDir, path: String;
 begin
   fname := TPath.GetFileName(AFile.FileName.Trim(['"']));
-  if TPath.HasValidFileNameChars(fname, false) then
+  Result := False;
+  if not(ImageExists(TPath.Combine(DirName, fname))) and TPath.HasValidFileNameChars(fname,
+    False) then
   begin
     BaseDir := TPath.Combine(BaseDirName, DirName);
-    if not TDirectory.Exists(BaseDir, false) then
+    if not TDirectory.Exists(BaseDir, False) then
       TDirectory.CreateDirectory(BaseDir);
     path := TPath.Combine(BaseDir, fname);
+    inputStreamSize := AFile.Stream.Size;
     fs := TFile.Create(path);
     try
-      fs.CopyFrom(AFile.Stream, 0);
-      Result := path;
+      outputStreamSize := fs.CopyFrom(AFile.Stream, 0);
+      Result := outputStreamSize = AFile.Stream.Size;
     finally
       fs.DisposeOf;
     end;
-  end
-  else
-    Result := '';
+  end;
 end;
 
 procedure TImageStorage.setBaseDir(const dir: String);

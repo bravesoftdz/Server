@@ -41,6 +41,8 @@ type
     /// and the path delimiters. </summary>
     procedure SetImagesDir(const dirName: String); overload;
 
+    procedure SaveImage(const dir: String; const ctx: TWebContext);
+
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
       var Handled: Boolean); override;
@@ -131,7 +133,7 @@ type
     /// <return>a string representation of the image uri after saving </return>
     [MVCPath('/save/image')]
     [MVCHTTPMethod([httpPOST])]
-    procedure SaveImage(ctx: TWebContext);
+    procedure SaveCommonImage(ctx: TWebContext);
 
     /// <summary>Save image corresponding to a given campaign</summary>
     /// <return>a string representation of the image uri after saving </return>
@@ -385,30 +387,34 @@ end;
 
 procedure TRedirectController.SaveCampaignImage(ctx: TWebContext);
 var
-  I, numOfFiles: Integer;
-  campaign, path: String;
+  campaign: String;
 begin
   campaign := ctx.request.params['campaign'];
-  numOfFiles := ctx.request.RawWebRequest.Files.Count;
-  for I := 0 to numOfFiles - 1 do
-  begin
-    ImageStorage.saveFile(campaign, ctx.request.Files[I]);
-  end;
-  Render(path);
+  SaveImage(campaign, ctx);
 end;
 
-procedure TRedirectController.SaveImage(ctx: TWebContext);
+procedure TRedirectController.SaveCommonImage(ctx: TWebContext);
+begin
+  SaveImage('', ctx);
+end;
+
+procedure TRedirectController.SaveImage(const dir: String;
+const ctx: TWebContext);
 var
   fs: TFileStream;
   I, numOfFiles: Integer;
+  report: TJsonObject;
+  status: Boolean;
   path: String;
 begin
   numOfFiles := ctx.request.RawWebRequest.Files.Count;
+  report := TJsonObject.Create();
   for I := 0 to numOfFiles - 1 do
   begin
-    ImageStorage.saveFile('', ctx.request.Files[I]);
+    status := ImageStorage.saveFile(dir, ctx.request.Files[I]);
+    report.AddPair(ctx.request.Files[I].FileName, TJSonBool.Create(status))
   end;
-  Render(path);
+  Render(report);
 end;
 
 procedure TRedirectController.SendImage(const path: String;

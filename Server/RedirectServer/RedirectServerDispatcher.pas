@@ -380,11 +380,10 @@ end;
 
 procedure TRedirectController.getCampaignImageWithTrack(ctx: TWebContext);
 var
-  campaign, imageName, trackCode: String;
-  ip, filePath, userAgent: String;
+  campaign, imageName, trackCode, requestResource, ip, filePath,
+    userAgent: String;
   request: TMVCWebRequest;
   view: TRequestView;
-
 begin
   request := ctx.request;
   campaign := request.params['campaign'];
@@ -393,6 +392,7 @@ begin
   ip := request.ClientIP;
   userAgent := request.Headers['User-Agent'];
   filePath := TPath.Combine(campaign, imageName);
+  requestResource := campaign + '/' + imageName;
   TThread.CreateAnonymousThread(
     procedure
     begin
@@ -400,7 +400,7 @@ begin
       view.setField('ip', ip);
       view.setCampaign(campaign);
       view.setField('user-agent', userAgent);
-      view.setField('request', filePath);
+      view.setField('request', requestResource);
       view.setField('trackCode', trackCode);
       RequestHandler.Archive(view);
     end).start;

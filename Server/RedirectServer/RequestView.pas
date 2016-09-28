@@ -8,11 +8,10 @@ type
   TRequestView = class(TRequestType)
   const
     MARKER = 'view';
-    // FIELDNAMES : TArray<String> = ['time', 'request', 'query', 'trackCode', 'ip', 'user-agent'];
   private
+  class var
+    FFieldNames: TArray<String>;
     FCampaign: String;
-
-    class var FFieldNames: TArray<String>;
   public
     class function getFieldNames: TArray<String>; override;
     function getCampaign: String; override;

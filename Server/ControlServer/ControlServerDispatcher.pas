@@ -29,9 +29,9 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure ping(ctx: TWebContext);
 
-    [MVCPath('/restart')]
+    [MVCPath('/status')]
     [MVCHTTPMethod([httpGET])]
-    procedure restart(ctx: TWebContext);
+    procedure getStatus(ctx: TWebContext);
 
     [MVCPath('/routes')]
     [MVCHTTPMethod([httpGET])]
@@ -50,7 +50,12 @@ uses
 
 procedure TControlServerController.getRoutes(ctx: TWebContext);
 begin
-    Render(WebResource.getRoutes);
+  Render(WebResource.getRoutes);
+end;
+
+procedure TControlServerController.getStatus(ctx: TWebContext);
+begin
+  Render(WebResource.getRedirectServerStatus());
 end;
 
 procedure TControlServerController.OnBeforeAction(Context: TWebContext;
@@ -65,12 +70,6 @@ begin
   Render('ok');
 end;
 
-procedure TControlServerController.restart(ctx: TWebContext);
-var
-  resp: TResponse;
-begin
-  WebResource.restart;
-end;
 
 procedure TControlServerController.testConnection(ctx: TWebContext);
 var

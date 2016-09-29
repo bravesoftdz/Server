@@ -146,12 +146,12 @@ uses
 { TDataModule1 }
 destructor TDMStorage.Destroy;
 begin
-  FLogger := nil;
   FCache.Clear;
   FCache.DisposeOf;
   FLockObject.DisposeOf;
   if not(FConnectionSettings = nil) then
     FConnectionSettings.DisposeOf;
+  FLogger := nil;
   inherited;
 end;
 
@@ -336,6 +336,7 @@ begin
     begin
       FDBConn.Rollback;
       FLogger.logException(TAG, e.Message);
+      empty(summary);
       raise;
     end;
   end;
@@ -384,7 +385,6 @@ begin
   begin
     fieldNames.add('`' + fieldName + '`');
     fieldValues.add(inttostr(Data.items[fieldName]));
-
   end;
   statement := 'INSERT INTO ' + tableName + ' (' + concatList(fieldNames,
     FIELDSEPARATOR) + ') VALUES (' + concatList(fieldValues,

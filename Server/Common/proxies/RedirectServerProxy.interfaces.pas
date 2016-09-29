@@ -29,24 +29,15 @@ type
     // [mapping(TJSONOBJECT)]
     function serverPing: TResponse;
 
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/server/status')]
+    function getRedirectServerStatus: TJSonObject;
+
     // [RESTResource(TMVCHTTPMethodType.httpGET, '/news/echo/{text}')]
     // [Headers('ContentType', 'text/plain')]
     // [Headers('Accept', 'text/plain')]
     // function EchoText([Param('text')] aText: string): String;
 
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/pause')]
-    procedure pause;
-
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/resume')]
-    procedure resume;
-
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/restart')]
-    procedure restart;
-
     { Route related commands: start }
-
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/reload')]
-    procedure LoadRoutes;
 
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/routes')]
     function getRoutes: TJSonObject;
@@ -58,12 +49,6 @@ type
     procedure addRoutes([Body] ABody: String);
 
     { Route related commands: end }
-
-    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/paused-campaigns')]
-    procedure getPausedCampaigns;
-
-    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/campaigns')]
-    procedure getCampaigns;
 
     // [MVCPath('/images/($img)')]
     // [MVCHTTPMethod([httpGET])]

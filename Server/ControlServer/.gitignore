@@ -1,4 +1,5 @@
 *.identcache
+ControlServer.stat
 Win32/
 Win64/
 __history/

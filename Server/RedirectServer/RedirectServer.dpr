@@ -15,11 +15,11 @@ uses
   Server.Launcher,
   Controller.webbase,
   Datasnap.DSSession,
-  MainWebModule in 'MainWebModule.pas' {wmMain: TWebModule},
+  MainWebModule in 'MainWebModule.pas' {wmMain: TWebModule} ,
   RequestHandler in 'RequestHandler.pas',
   Route in 'Route.pas',
   InterfaceRoute in 'InterfaceRoute.pas',
-  Storage in 'Storage.pas' {DMStorage: TDataModule},
+  Storage in 'Storage.pas' {DMStorage: TDataModule} ,
   InterfaceAuthentication in 'InterfaceAuthentication.pas',
   InterfaceLogger in 'InterfaceLogger.pas',
   MessageCodes in 'MessageCodes.pas',
@@ -28,10 +28,14 @@ uses
   RequestView in 'RequestView.pas' {$R *.res},
   Logger in 'Logger.pas' {$R *.res},
   RedirectServerDispatcher in 'RedirectServerDispatcher.pas' {$R *.res},
-  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas' {$R *.res},
+  RedirectServerProxy.interfaces
+    in '..\Common\proxies\RedirectServerProxy.interfaces.pas' {$R *.res},
   ImageStorage in 'ImageStorage.pas';
 
 {$R *.res}
+
+var
+  i: Integer;
 
 begin
   ReportMemoryLeaksOnShutdown := true;

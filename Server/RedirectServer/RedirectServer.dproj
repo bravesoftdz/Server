@@ -182,7 +182,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <Debugger_RunParams>file.config</Debugger_RunParams>
+        <Debugger_RunParams>Server.conf</Debugger_RunParams>
         <DCC_Define>madExcept;LeakChecking;$(DCC_Define)</DCC_Define>
         <DCC_MapFile>3</DCC_MapFile>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -229,6 +229,7 @@
             <Form>$R *.res</Form>
         </DCCReference>
         <DCCReference Include="ImageStorage.pas"/>
+        <DCCReference Include="ServerConfig.pas"/>
         <None Include="ModelSupport_AdvLiteServer\InterfaceAuthentication\default.txvpck"/>
         <None Include="ModelSupport_AdvLiteServer\Controller\default.txvpck"/>
         <None Include="ModelSupport_AdvLiteServer\MessageCodes\default.txvpck"/>

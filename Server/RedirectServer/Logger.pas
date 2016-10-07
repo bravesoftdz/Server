@@ -6,6 +6,16 @@ uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON,
   System.SysUtils;
 
 type
+  TLoggerConfig = class
+  private
+    FLogDir: String;
+    FMaxCacheSize: Integer;
+  public
+    property LogDir: String read FLogDir write FLogDir;
+    property MaxCacheSize: Integer read FMaxCacheSize write FMaxCacheSize;
+  end;
+
+type
   TLogger = class(TInterfacedObject, ILogger)
   private
     Cache: TDictionary<String, TStringList>;
@@ -37,7 +47,7 @@ type
 
     /// token corresponding to the LogDir property
   const
-    LOG_DIR_TOKEN: String = 'logger folder';
+    LOG_DIR_TOKEN: String = 'folder';
 
     procedure flushCacheSync;
     procedure emptyCache;
@@ -47,6 +57,13 @@ type
     procedure setLogDir(const dir: String);
 
   public
+    /// <summary>Constructor</summary>
+    /// <param name="data">a json object with two keys:
+    /// 1. defined by constant LOG_DIR_TOKEN for the folder in which the log files are to be saved,
+    /// 2. defined by constant MAX_CACHE_SIZE_TOKEN for the max number of recores to maintain in memory
+    /// </param>
+    constructor Create(const data: TJSonObject); overload;
+
     /// <summary>Constructor</summary>
     /// <param name="DirName">name of directory in which the log files are saved.
     /// It can contain only alphanumeric symbols, underscore and the path delimiter </param>
@@ -61,6 +78,7 @@ type
     /// <param name="MaxCacheSize">max number of records to maintain in memory
     /// before saving in a file </param>
     constructor Create(); overload;
+
     destructor Destroy; override;
 
     procedure log(const level, source, msg: String);
@@ -70,8 +88,8 @@ type
     procedure logInfo(const source, msg: String);
     procedure flushCache;
     procedure configure(const LogDir: String; const MaxCacheSize: Integer);
-    function getStatus(): TJsonObject;
-    procedure setProperties(const params: TJsonObject);
+    function getStatus(): TJSonObject;
+    procedure setProperties(const params: TJSonObject);
   end;
 
 implementation
@@ -144,7 +162,7 @@ end;
 
 /// <summary> Set the properties passed as json object. All unrecognized
 /// properties are ignored. </summary>
-procedure TLogger.setProperties(const params: TJsonObject);
+procedure TLogger.setProperties(const params: TJSonObject);
 begin
   flushCache();
   if (params.GetValue(MAX_CACHE_SIZE_TOKEN) is TJSONNumber) then
@@ -188,6 +206,12 @@ begin
     inttostr(MaxCacheSize));
 end;
 
+constructor TLogger.Create(const data: TJSonObject);
+begin
+  Create();
+  configure(data.GetValue(LOG_DIR_TOKEN).Value, StrToInt(data.GetValue(MAX_CACHE_SIZE_TOKEN).value));
+end;
+
 constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
 begin
   Create;
@@ -224,7 +248,7 @@ procedure TLogger.flushCacheSync;
 var
   line, fullPath: String;
   item: TPair<String, TStringList>;
-  dirPath, FileName: String;
+  dirPath, fileName: String;
   writer: TStreamWriter;
 begin
   if LogDir.IsEmpty then
@@ -236,7 +260,7 @@ begin
       // try
       fullPath := LogDir + PathDelim + item.Key;
       dirPath := ExtractFileDir(fullPath);
-      FileName := extractfilename(fullPath);
+      fileName := extractfilename(fullPath);
       if not DirectoryExists(dirPath) then
         TDirectory.CreateDirectory(dirPath);
 
@@ -273,9 +297,9 @@ begin
 end;
 
 { Return the status of the logger }
-function TLogger.getStatus: TJsonObject;
+function TLogger.getStatus: TJSonObject;
 begin
-  Result := TJsonObject.Create;
+  Result := TJSonObject.Create;
   Result.AddPair('logger name', 'Logger');
   Result.AddPair(LOG_DIR_TOKEN, LogDir);
   Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSONNumber.Create(MaxCacheSize));

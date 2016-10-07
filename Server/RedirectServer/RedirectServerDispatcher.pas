@@ -8,7 +8,7 @@ uses
   Route, System.Classes,
   InterfaceRoute, System.JSON, System.Generics.Collections,
   Settings, Storage, Logger, RequestHandler, InterfaceLogger,
-  MVCFramework.Commons, ImageStorage;
+  MVCFramework.Commons, ImageStorage, ServerConfig;
 
 type
 
@@ -26,9 +26,10 @@ type
     class var Storage: TDMStorage;
     class var Logger: ILogger;
     class var ImageStorage: TImageStorage;
-    class var ConfigFilePath: String;
+    class var ServerConfig: TServerConfig;
 
     procedure SendImage(const path: String; const ctx: TWebContext);
+    procedure SetConfigFilePath(const path: String);
     procedure ArchiveAndRedirect(const campaign, article, track: String;
       const ctx: TWebContext);
     function GetQueryMap(const data: TStrings): TDictionary<String, String>;
@@ -474,6 +475,12 @@ begin
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 
+procedure TRedirectController.SetConfigFilePath(const path: String);
+begin
+  TRedirectController.ServerConfig := TServerConfig.Create(path);
+
+end;
+
 procedure TRedirectController.SetImagesDir(const dirName: String);
 begin
   ImageStorage.BaseDir := dirName;
@@ -520,25 +527,7 @@ var
   i: Integer;
 begin
   if ParamCount >= 1 then
-  begin
-    TRedirectController.ConfigFilePath := paramstr(1);
-    if fileExists(TRedirectController.ConfigFilePath, false) then
-      System.Writeln('Configuration file ' + TRedirectController.ConfigFilePath
-        + ' is found.')
-    else
-    begin
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-        15 OR BACKGROUND_RED);
-      System.Write('Warning:');
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-      System.Write(' Configuration file ');
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-      System.Write(TRedirectController.ConfigFilePath);
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-      System.Writeln(' is not found. Hope to find it later.');
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-    end;
-  end
+    TRedirectController.ServerConfig := TServerConfig.Create(paramstr(1))
   else
   begin
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
@@ -550,10 +539,16 @@ begin
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
     System.Writeln('Hardly believe this is what you want.');
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-
+    StopServer();
   end;
 
-  TRedirectController.Logger := TLogger.Create('log' + PathDelim, 10);
+  if Assigned(TRedirectController.ServerConfig) then
+    TRedirectController.Logger :=
+      TLogger.Create(TJsonObject.ParseJSONValue(TEncoding.ASCII.GetBytes
+      (TRedirectController.ServerConfig.Logger), 0) as TJsonObject)
+  else
+    TRedirectController.Logger := TLogger.Create('log' + PathDelim, 10);
+
   TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
     'Start the server.');
 

@@ -44,7 +44,7 @@ type
     procedure SetImagesDir(const dirName: String); overload;
     /// <summary>Convert string into a json object</summary>
     /// <param name="str">string containing a valid json object</param>
-    class function StringToJsonObject(const str: String): TJsonObject;
+//    class function StringToJsonObject(const str: String): TJsonObject;
 
     // procedure SaveImage(const dir: String; const ctx: TWebContext);
     /// Delete an image in a given location inside the image storage
@@ -545,20 +545,20 @@ begin
     StopServer();
   end;
 
-  if Assigned(TRedirectController.ServerConfig) then
-    TRedirectController.Logger :=
-      TLogger.Create
-      (TRedirectController.StringToJsonObject(TRedirectController.ServerConfig.Logger))
-  else
-    TRedirectController.Logger := TLogger.Create('log' + PathDelim, 10);
+//  if Assigned(TRedirectController.ServerConfig) then
+//    TRedirectController.Logger :=
+//      TLogger.Create
+//      (TRedirectController.StringToJsonObject(TRedirectController.ServerConfig.Logger))
+//  else
+//    TRedirectController.Logger := TLogger.Create('log' + PathDelim, 10);
 
   TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
     'Start the server.');
 
   TRedirectController.Route := TRoute.Create;
   TRedirectController.Route.setLogger(TRedirectController.Logger);
-  TRedirectController.Route.addRoutes
-    (StringToJsonObject(TRedirectController.ServerConfig.router));
+//  TRedirectController.Route.addRoutes
+//    (StringToJsonObject(TRedirectController.ServerConfig.router));
 
   TRedirectController.Storage := TDMStorage.Create(nil);
   TRedirectController.Storage.CacheSize := 10;
@@ -571,12 +571,12 @@ begin
   TRedirectController.ImageStorage := TImageStorage.Create('images' + PathDelim)
 end;
 
-class function TRedirectController.StringToJsonObject(const str: String): TJsonObject;
-begin
-  Result := TJsonObject.ParseJSONValue
-    (TEncoding.ASCII.GetBytes(TRedirectController.ServerConfig.Logger), 0)
-    as TJsonObject
-end;
+//class function TRedirectController.StringToJsonObject(const str: String): TJsonObject;
+//begin
+//  Result := TJsonObject.ParseJSONValue
+//    (TEncoding.ASCII.GetBytes(TRedirectController.ServerConfig.Logger), 0)
+//    as TJsonObject
+//end;
 
 function TRedirectController.feedQueryParams(const Base: String;
 const params: TDictionary<String, String>): String;

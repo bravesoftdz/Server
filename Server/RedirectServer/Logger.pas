@@ -13,6 +13,7 @@ type
   public
     property LogDir: String read FLogDir write FLogDir;
     property MaxCacheSize: Integer read FMaxCacheSize write FMaxCacheSize;
+    constructor Create;
   end;
 
 type
@@ -209,7 +210,8 @@ end;
 constructor TLogger.Create(const data: TJSonObject);
 begin
   Create();
-  configure(data.GetValue(LOG_DIR_TOKEN).Value, StrToInt(data.GetValue(MAX_CACHE_SIZE_TOKEN).value));
+  configure(data.GetValue(LOG_DIR_TOKEN).Value,
+    StrToInt(data.GetValue(MAX_CACHE_SIZE_TOKEN).Value));
 end;
 
 constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
@@ -304,6 +306,12 @@ begin
   Result.AddPair(LOG_DIR_TOKEN, LogDir);
   Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSONNumber.Create(MaxCacheSize));
   Result.AddPair('current size', TJSONNumber.Create(CurrentSize));
+end;
+
+{ TLoggerConfig }
+
+constructor TLoggerConfig.Create;
+begin
 end;
 
 end.

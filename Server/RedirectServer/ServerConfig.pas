@@ -11,7 +11,7 @@ type
     FLogger: TLoggerConfig;
   public
     property Logger: TLoggerConfig read FLogger write FLogger;
-    property router: String read FRouter write FRouter;
+    property routes: String read FRouter write FRouter;
     property dbStorage: String read FDbStorage write FDbStorage;
     property imageStorage: String read FImageStorage write FImageStorage;
     property requestHandler: String read FRequestHandler write FRequestHandler;

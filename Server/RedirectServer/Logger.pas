@@ -63,7 +63,7 @@ type
     /// 1. defined by constant LOG_DIR_TOKEN for the folder in which the log files are to be saved,
     /// 2. defined by constant MAX_CACHE_SIZE_TOKEN for the max number of recores to maintain in memory
     /// </param>
-    constructor Create(const data: TJSonObject); overload;
+    constructor Create(const data: TLoggerConfig); overload;
 
     /// <summary>Constructor</summary>
     /// <param name="DirName">name of directory in which the log files are saved.
@@ -88,7 +88,7 @@ type
     procedure logException(const source, msg: String);
     procedure logInfo(const source, msg: String);
     procedure flushCache;
-    procedure configure(const LogDir: String; const MaxCacheSize: Integer);
+    procedure configure(const data: TLoggerConfig);
     function getStatus(): TJSonObject;
     procedure setProperties(const params: TJSonObject);
   end;
@@ -197,21 +197,20 @@ begin
     flushCache();
 end;
 
-procedure TLogger.configure(const LogDir: String; const MaxCacheSize: Integer);
+procedure TLogger.configure(const data: TLoggerConfig);
 const
   TAG: String = 'TLogger.configure';
 begin
-  Self.LogDir := LogDir;
-  Self.MaxCacheSize := MaxCacheSize;
+  Self.LogDir := data.LogDir;
+  Self.MaxCacheSize := data.MaxCacheSize;
   logInfo(TAG, 'The logger settings: folder ' + LogDir + ', buffer size ' +
     inttostr(MaxCacheSize));
 end;
 
-constructor TLogger.Create(const data: TJSonObject);
+constructor TLogger.Create(const data: TLoggerConfig);
 begin
   Create();
-  configure(data.GetValue(LOG_DIR_TOKEN).Value,
-    StrToInt(data.GetValue(MAX_CACHE_SIZE_TOKEN).Value));
+  configure(data.LogDir, data.MaxCacheSize);
 end;
 
 constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);

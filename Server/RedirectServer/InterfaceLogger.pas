@@ -3,7 +3,7 @@ unit InterfaceLogger;
 interface
 
 uses
-  System.JSON;
+  System.JSON, Logger;
 
 type
   ILogger = interface
@@ -13,7 +13,7 @@ type
     procedure logException(const source, msg: String);
     procedure logInfo(const source, msg: String);
     procedure flushCache;
-    procedure configure(const logDir: String; const logCacheSize: Integer);
+    procedure configure(const data: TLoggerConfig);
     function getStatus(): TJsonObject;
     procedure setProperties(const Params: TJsonObject);
 

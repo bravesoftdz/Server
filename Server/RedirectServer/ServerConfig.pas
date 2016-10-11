@@ -2,19 +2,35 @@ unit ServerConfig;
 
 interface
 
-uses System.JSON, LoggerConfig;
+uses System.JSON, LoggerConfig, System.Generics.Collections, rttiObjectsMappers,
+  ImageStorage;
 
 type
+
+  [MapperJSONNaming(JSONNameLowerCase)]
+  TRouteMapper = class
+  private
+    FKey: String;
+    FValue: String;
+  published
+    property Key: String read FKey write FKey;
+    property Value: String read FValue write FValue;
+  end;
+
+  [MapperJSONNaming(JSONNameLowerCase)]
   TServerConfig = class
   private
-    FRoutes: TJSONObject;
-    FDbStorage, FImageStorage, FRequestHandler: String;
+    FRoutes: TObjectList<TRouteMapper>;
+    FDbStorage, FRequestHandler: String;
     FLogger: TLoggerConfig;
+    FImageStorage: TImageStorageConfig;
   public
     property Logger: TLoggerConfig read FLogger write FLogger;
-    property routes: TJSONObject read FRoutes write FRoutes;
+    [MapperItemsClassType(TRouteMapper)]
+    property Routes: TObjectList<TRouteMapper> read FRoutes write FRoutes;
     property dbStorage: String read FDbStorage write FDbStorage;
-    property imageStorage: String read FImageStorage write FImageStorage;
+    property ImageStorage: TImageStorageConfig read FImageStorage
+      write FImageStorage;
     property requestHandler: String read FRequestHandler write FRequestHandler;
     constructor Create(const fileName: String);
     destructor Destroy; override;
@@ -22,15 +38,15 @@ type
 
 implementation
 
-uses bo.Helpers, System.IOUtils, System.SysUtils, Winapi.Windows,
-  rttiObjectsMappers;
+uses bo.Helpers, System.IOUtils, System.SysUtils, Winapi.Windows;
 
 constructor TServerConfig.Create(const fileName: String);
 begin
   if TFile.Exists(fileName, False) then
   begin
-    Logger := TLoggerConfig.Create();
-    routes := TJSONObject.Create();
+    FLogger := TLoggerConfig.Create();
+    FRoutes := TObjectList<TRouteMapper>.Create();
+    FImageStorage := TImageStorageConfig.Create();
     LoadFromJFile(fileName)
   end
   else
@@ -50,9 +66,13 @@ begin
 end;
 
 destructor TServerConfig.Destroy;
+var
+  mapper: TRouteMapper;
 begin
-  Logger.disposeOf;
-  routes.DisposeOf;
+  FImageStorage.DisposeOf;
+  FLogger.DisposeOf;
+  FRoutes.Clear;
+  FRoutes.DisposeOf;
 end;
 
 end.

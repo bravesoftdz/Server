@@ -8,8 +8,8 @@ type
     FLogDir: String;
     FMaxCacheSize: Integer;
   public
-    property LogDir: String read FLogDir write FLogDir;
-    property MaxCacheSize: Integer read FMaxCacheSize write FMaxCacheSize;
+    property logdir: String read FLogDir write FLogDir;
+    property maxcachesize: Integer read FMaxCacheSize write FMaxCacheSize;
   end;
 
 

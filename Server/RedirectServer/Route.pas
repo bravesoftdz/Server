@@ -6,7 +6,7 @@ uses
   System.Generics.Collections,
   System.JSON,
   InterfaceRoute,
-  // Settings,
+  ServerConfig,
   InterfaceLogger, System.Classes;
 
 type TRouteConfig = class
@@ -21,7 +21,7 @@ type
   /// In fact, it contains just a string-to-string dictinary corresponding to the
   /// redirects.
   /// </summary>
-  TRoute = class(TInterfacedObject, IRoute)
+  TRouter = class(TInterfacedObject, IRoute)
   private
     /// <summary> A dictionary of the redirects </summary>
     FMapper: TDictionary<String, String>;
@@ -38,14 +38,10 @@ type
     function getRoutes(): TJsonObject;
     constructor Create();
     /// <summary> Add given routes to exisiting ones.
-    /// The argument is supposed to have the following format:
-    // {'campaign1/route1':'http://www.example.com',
-    // 'campaign2/route2':'http://www.another-example.com',
-    // .... }
     /// In case a route key already exists, the new route
     // is ignored.
     /// </summary>
-    procedure addRoutes(const routes: TJsonObject);
+    procedure addRoutes(const routes: TObjectList<TRouteMapper>);
     /// <summary>Delete routes.
     /// The argument is suposed of the following format
     /// {0: 'route1', 1: 'route2', ...}</summary>
@@ -64,12 +60,12 @@ uses
   System.IOUtils,
   System.SysUtils, System.RegularExpressions;
 
-constructor TRoute.Create;
+constructor TRouter.Create;
 begin
   FMapper := TDictionary<String, String>.Create;
 end;
 
-destructor TRoute.Destroy;
+destructor TRouter.Destroy;
 begin
   FMapper.Clear;
   FMapper.DisposeOf;
@@ -77,23 +73,23 @@ begin
   inherited;
 end;
 
-procedure TRoute.addRoutes(const routes: TJsonObject);
+procedure TRouter.addRoutes(const routes: TObjectList<TRouteMapper>);
 var
-  aPair: TJSONPair;
+  mapper: TRouteMapper;
   key, value: String;
 begin
   if routes = nil then
     Exit();
-  for aPair in routes do
+  for mapper in routes do
   begin
-    key := aPair.JsonString.value;
-    value := aPair.JsonValue.value;
+    key := mapper.key;
+    value := mapper.value;
     if not(FMapper.containsKey(key)) then
       FMapper.add(key, value);
   end;
 end;
 
-function TRoute.getUrl(const campaign: String; article: String): String;
+function TRouter.getUrl(const campaign: String; article: String): String;
 var
   aValue: String;
 begin
@@ -103,7 +99,7 @@ begin
     Result := FMapper.Items[aValue];
 end;
 
-procedure TRoute.delete(const routes: TJsonArray);
+procedure TRouter.delete(const routes: TJsonArray);
 var
   routeJSONValue: TJSONValue;
   Route: String;
@@ -118,12 +114,12 @@ begin
   end
 end;
 
-procedure TRoute.setLogger(const Logger: ILogger);
+procedure TRouter.setLogger(const Logger: ILogger);
 begin
   self.FLogger := Logger;
 end;
 
-procedure TRoute.setRoutes(const routes: TDictionary<String, String>);
+procedure TRouter.setRoutes(const routes: TDictionary<String, String>);
 var
   item: TPair<String, String>;
 begin
@@ -132,7 +128,7 @@ begin
     FMapper.add(item.key, item.value);
 end;
 
-function TRoute.getRoutes(): TJsonObject;
+function TRouter.getRoutes(): TJsonObject;
 var
   key, value: String;
 begin
@@ -144,7 +140,7 @@ begin
   end;
 end;
 
-function TRoute.getStatus: TJsonObject;
+function TRouter.getStatus: TJsonObject;
 begin
   Result := TJsonObject.Create;
   Result.AddPair('logger', TJSonBool.Create(assigned(FLogger)));

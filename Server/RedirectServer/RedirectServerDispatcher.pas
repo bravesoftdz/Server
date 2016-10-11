@@ -21,7 +21,7 @@ type
     ROUTER_TOKEN: String = 'router status';
     STORAGE_TOKEN: String = 'storage status';
     // class var Settings: TSettings;
-    class var Route: IRoute;
+    class var Router: IRoute;
     class var RequestHandler: IRequestHandler;
     class var Storage: TDMStorage;
     class var Logger: ILogger;
@@ -250,7 +250,7 @@ var
 begin
   request := ctx.request;
   resourse := campaign + '/' + article;
-  bareUrl := Route.getUrl(campaign, article);
+  bareUrl := Router.getUrl(campaign, article);
 
   if not(bareUrl.isEmpty) then
   begin
@@ -292,7 +292,7 @@ begin
   TRedirectController.ImageStorage.DisposeOf;
   TRedirectController.RequestHandler := nil;
   TRedirectController.Storage.DisposeOf;
-  TRedirectController.Route := nil;
+  TRedirectController.Router := nil;
   TRedirectController.Logger := nil;
 
 end;
@@ -381,8 +381,8 @@ begin
   status := TJsonObject.Create;
   if not(Logger = nil) then
     status.AddPair(LOGGER_TOKEN, Logger.getStatus);
-  if not(Route = nil) then
-    status.AddPair(ROUTER_TOKEN, Route.getStatus);
+  if not(Router = nil) then
+    status.AddPair(ROUTER_TOKEN, Router.getStatus);
   if not(Storage = nil) then
     status.AddPair(STORAGE_TOKEN, Storage.getStatus);
   if not(ImageStorage = nil) then
@@ -547,27 +547,28 @@ begin
   end;
 
   TRedirectController.Logger := TLogger.Create();
-  TRedirectController.Route := TRoute.Create;
-  TRedirectController.Route.setLogger(TRedirectController.Logger);
+  TRedirectController.Router := TRouter.Create;
+  TRedirectController.Router.setLogger(TRedirectController.Logger);
   TRedirectController.Storage := TDMStorage.Create(nil);
   TRedirectController.Storage.Logger := TRedirectController.Logger;
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-//  TRedirectController.ImageStorage := TImageStorage.Create();
+  // TRedirectController.ImageStorage := TImageStorage.Create();
 
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
     TRedirectController.Logger.Configure(ServerConfig.Logger);
-    TRedirectController.Route.addRoutes(ServerConfig.routes);
+    TRedirectController.Router.addRoutes(ServerConfig.routes);
 //    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
 
-//    TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
+    // TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
     // TImageStorage.Create('images' + PathDelim);
 
     TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
       'Start the server with custom settings.');
+    ServerConfig.DisposeOf;
   end
   else
   begin
@@ -576,20 +577,20 @@ begin
 
   end
 
-//  TRedirectController.Route := TRoute.Create;
-//  TRedirectController.Route.setLogger(TRedirectController.Logger);
-//  TRedirectController.Route.addRoutes
-//    (StringToJsonObject(TRedirectController.ServerConfig.router));
-//
-//  TRedirectController.Storage := TDMStorage.Create(nil);
-//  TRedirectController.Storage.CacheSize := 10;
-//  TRedirectController.Storage.Logger := TRedirectController.Logger;
-//
-//  TRedirectController.RequestHandler := TRequestHandler.Create;
-//  TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
-//  TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-//
-//  TRedirectController.ImageStorage := TImageStorage.Create('images' + PathDelim)
+  // TRedirectController.Route := TRoute.Create;
+  // TRedirectController.Route.setLogger(TRedirectController.Logger);
+  // TRedirectController.Route.addRoutes
+  // (StringToJsonObject(TRedirectController.ServerConfig.router));
+  //
+  // TRedirectController.Storage := TDMStorage.Create(nil);
+  // TRedirectController.Storage.CacheSize := 10;
+  // TRedirectController.Storage.Logger := TRedirectController.Logger;
+  //
+  // TRedirectController.RequestHandler := TRequestHandler.Create;
+  // TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
+  // TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
+  //
+  // TRedirectController.ImageStorage := TImageStorage.Create('images' + PathDelim)
 end;
 
 // class function TRedirectController.StringToJsonObject(const str: String): TJsonObject;

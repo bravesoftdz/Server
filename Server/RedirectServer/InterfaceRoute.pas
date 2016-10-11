@@ -3,7 +3,8 @@ unit InterfaceRoute;
 interface
 
 uses
-  System.JSON, InterfaceLogger, System.Classes, System.Generics.Collections;
+  System.JSON, InterfaceLogger, System.Classes, ServerConfig,
+  System.Generics.Collections;
 
 type
   IRoute = interface
@@ -12,7 +13,7 @@ type
     function getUrl(const campaign: String; article: String): String;
     function getRoutes(): TJsonObject;
     procedure setRoutes(const routes: TDictionary<String, String>);
-    procedure addRoutes(const routes: TJsonObject);
+    procedure addRoutes(const routes: TObjectList<TRouteMapper>);
     procedure delete(const routes: TJsonArray);
     function getStatus(): TJsonObject;
     procedure setLogger(const Logger: ILogger);

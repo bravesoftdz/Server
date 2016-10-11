@@ -5,6 +5,14 @@ interface
 uses Web.HTTPApp, System.JSON, System.RegularExpressions, System.Classes;
 
 type
+  TImageStorageConfig = class
+  private
+    FDir: String;
+  published
+    property dir: String read FDir write FDir;
+  end;
+
+type
   TImageStorage = class(TObject)
     /// <summary>Folder where to store the images.</summary>
   private

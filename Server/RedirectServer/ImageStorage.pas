@@ -37,11 +37,6 @@ type
     /// </summary>
     function saveFile(const DirName: String;
       const AFile: TAbstractWebRequestFile): Boolean;
-    /// <summary>
-    /// Instantiate an ImageStorage object with BaseDirName being a relative
-    /// path with respect to the server executable path.
-    /// </summary>
-    constructor Create(const BaseDirName: String);
 
     function getStatus(): TJsonObject;
 
@@ -58,6 +53,11 @@ type
     function isAllowedExtension(const ext: String): Boolean;
 
     property BaseDir: String read BaseDirName write setBaseDir;
+    /// <summary>
+    /// Configure this instance.
+    /// The directory name data.dir is relative with respect to the server executable path.
+    /// </summary>
+    procedure Configure(const data: TImageStorageConfig);
   end;
 
 implementation
@@ -67,11 +67,11 @@ uses
 
 { TImageStorage }
 
-constructor TImageStorage.Create(const BaseDirName: String);
+procedure TImageStorage.Configure(const data: TImageStorageConfig);
 begin
-  if (TDirectory.Exists(BaseDirName)) then
-    TDirectory.CreateDirectory(BaseDirName);
-  Self.BaseDirName := BaseDirName;
+  if (TDirectory.Exists(data.dir)) then
+    TDirectory.CreateDirectory(data.dir);
+  Self.BaseDirName := data.dir;
   Self.nonSafePathPattern := TRegEx.Create('[^a-zA-Z0-9_\' + PathDelim + ']');
   Self.allowedImageExtensions := ['.png', '.jpg', '.jpeg'];
 end;

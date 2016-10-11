@@ -554,7 +554,7 @@ begin
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-  // TRedirectController.ImageStorage := TImageStorage.Create();
+   TRedirectController.ImageStorage := TImageStorage.Create();
 
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
@@ -563,8 +563,7 @@ begin
     TRedirectController.Router.addRoutes(ServerConfig.routes);
 //    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
 
-    // TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
-    // TImageStorage.Create('images' + PathDelim);
+     TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
 
     TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
       'Start the server with custom settings.');

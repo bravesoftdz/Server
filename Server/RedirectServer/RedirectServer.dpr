@@ -30,7 +30,8 @@ uses
   RedirectServerDispatcher in 'RedirectServerDispatcher.pas' {$R *.res},
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas' {$R *.res},
   ImageStorage in 'ImageStorage.pas',
-  ServerConfig in 'ServerConfig.pas';
+  ServerConfig in 'ServerConfig.pas',
+  LoggerConfig in 'LoggerConfig.pas';
 
 {$R *.res}
 

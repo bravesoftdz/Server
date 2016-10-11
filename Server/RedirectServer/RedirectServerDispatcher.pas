@@ -554,16 +554,16 @@ begin
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-  TRedirectController.ImageStorage := TImageStorage.Create();
+//  TRedirectController.ImageStorage := TImageStorage.Create();
 
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
     TRedirectController.Logger.Configure(ServerConfig.Logger);
     TRedirectController.Route.addRoutes(ServerConfig.routes);
-    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
+//    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
 
-    TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
+//    TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
     // TImageStorage.Create('images' + PathDelim);
 
     TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',

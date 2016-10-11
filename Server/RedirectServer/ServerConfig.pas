@@ -2,21 +2,22 @@ unit ServerConfig;
 
 interface
 
-uses System.JSON, Logger;
+uses System.JSON, LoggerConfig;
 
 type
   TServerConfig = class
   private
-    FRouter, FDbStorage, FImageStorage, FRequestHandler: String;
+    FRoutes: TJSONObject;
+    FDbStorage, FImageStorage, FRequestHandler: String;
     FLogger: TLoggerConfig;
   public
     property Logger: TLoggerConfig read FLogger write FLogger;
-    property routes: String read FRouter write FRouter;
+    property routes: TJSONObject read FRoutes write FRoutes;
     property dbStorage: String read FDbStorage write FDbStorage;
     property imageStorage: String read FImageStorage write FImageStorage;
     property requestHandler: String read FRequestHandler write FRequestHandler;
     constructor Create(const fileName: String);
-    destructor Destroy;override;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -29,6 +30,7 @@ begin
   if TFile.Exists(fileName, False) then
   begin
     Logger := TLoggerConfig.Create();
+    routes := TJSONObject.Create();
     LoadFromJFile(fileName)
   end
   else
@@ -50,6 +52,7 @@ end;
 destructor TServerConfig.Destroy;
 begin
   Logger.disposeOf;
+  routes.DisposeOf;
 end;
 
 end.

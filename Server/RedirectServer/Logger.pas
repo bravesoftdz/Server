@@ -3,18 +3,8 @@ unit Logger;
 interface
 
 uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON,
-  System.SysUtils;
+  System.SysUtils, LoggerConfig;
 
-type
-  TLoggerConfig = class
-  private
-    FLogDir: String;
-    FMaxCacheSize: Integer;
-  public
-    property LogDir: String read FLogDir write FLogDir;
-    property MaxCacheSize: Integer read FMaxCacheSize write FMaxCacheSize;
-    constructor Create;
-  end;
 
 type
   TLogger = class(TInterfacedObject, ILogger)
@@ -70,8 +60,8 @@ type
     /// It can contain only alphanumeric symbols, underscore and the path delimiter </param>
     /// <param name="MaxCacheSize">max number of records to maintain in memory
     /// before saving in a file </param>
-    constructor Create(const DirName: String;
-      const MaxCacheSize: Integer); overload;
+//    constructor Create(const DirName: String;
+//      const MaxCacheSize: Integer); overload;
     /// <summary>Constructor that sets only the maximal cache size to the default value
     /// and does not set a directory in which to save the log files.</summary>
     /// <param name="DirName">name of directory in which the log files are saved.
@@ -210,14 +200,14 @@ end;
 constructor TLogger.Create(const data: TLoggerConfig);
 begin
   Create();
-  configure(data.LogDir, data.MaxCacheSize);
+  configure(data);
 end;
 
-constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
-begin
-  Create;
-  configure(DirName, MaxCacheSize);
-end;
+//constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
+//begin
+//  Create;
+//  configure(DirName, MaxCacheSize);
+//end;
 
 constructor TLogger.Create;
 const
@@ -309,8 +299,5 @@ end;
 
 { TLoggerConfig }
 
-constructor TLoggerConfig.Create;
-begin
-end;
 
 end.

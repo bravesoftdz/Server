@@ -9,6 +9,10 @@ uses
   // Settings,
   InterfaceLogger, System.Classes;
 
+type TRouteConfig = class
+
+end;
+
 type
   /// <summary>Manage routes.
   /// This class performs a redirect from one url to another.

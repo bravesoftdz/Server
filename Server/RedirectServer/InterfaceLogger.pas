@@ -3,7 +3,7 @@ unit InterfaceLogger;
 interface
 
 uses
-  System.JSON, Logger;
+  System.JSON, LoggerConfig;
 
 type
   ILogger = interface

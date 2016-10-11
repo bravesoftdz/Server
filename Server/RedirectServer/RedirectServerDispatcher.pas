@@ -561,7 +561,7 @@ begin
   begin
     TRedirectController.Logger.Configure(ServerConfig.Logger);
     TRedirectController.Router.addRoutes(ServerConfig.routes);
-//    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
+//    TRedirectController.Storage.setConnectionSettings(ServerConfig.DbStorage);
 
      TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
 

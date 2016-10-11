@@ -3,7 +3,7 @@ unit ServerConfig;
 interface
 
 uses System.JSON, LoggerConfig, System.Generics.Collections, rttiObjectsMappers,
-  ImageStorage;
+  ImageStorage, Storage;
 
 type
 
@@ -21,14 +21,15 @@ type
   TServerConfig = class
   private
     FRoutes: TObjectList<TRouteMapper>;
-    FDbStorage, FRequestHandler: String;
+    FDbStorage: TStorageConfig;
+    FRequestHandler: String;
     FLogger: TLoggerConfig;
     FImageStorage: TImageStorageConfig;
   public
     property Logger: TLoggerConfig read FLogger write FLogger;
     [MapperItemsClassType(TRouteMapper)]
     property Routes: TObjectList<TRouteMapper> read FRoutes write FRoutes;
-    property dbStorage: String read FDbStorage write FDbStorage;
+    property dbStorage: TStorageConfig read FDbStorage write FDbStorage;
     property ImageStorage: TImageStorageConfig read FImageStorage
       write FImageStorage;
     property requestHandler: String read FRequestHandler write FRequestHandler;
@@ -47,6 +48,7 @@ begin
     FLogger := TLoggerConfig.Create();
     FRoutes := TObjectList<TRouteMapper>.Create();
     FImageStorage := TImageStorageConfig.Create();
+    FDbStorage := TStorageConfig.Create();
     LoadFromJFile(fileName)
   end
   else
@@ -66,13 +68,12 @@ begin
 end;
 
 destructor TServerConfig.Destroy;
-var
-  mapper: TRouteMapper;
 begin
+  FDbStorage.DisposeOf;
   FImageStorage.DisposeOf;
-  FLogger.DisposeOf;
   FRoutes.Clear;
   FRoutes.DisposeOf;
+  FLogger.DisposeOf;
 end;
 
 end.

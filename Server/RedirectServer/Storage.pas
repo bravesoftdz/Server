@@ -32,6 +32,19 @@ uses
   System.RegularExpressions, System.SysUtils;
 
 type
+  TStorageConfig = class
+  private
+    FUserName, FDatabase, FDriverID, FPassword, FServer: String;
+  published
+    property username: String read FUserName write FUserName;
+    property database: String read FDatabase write FDatabase;
+    property driverid: String read FDriverID write FDriverID;
+    property password: String read FPassword write FPassword;
+    property server: String read FServer write FServer;
+
+  end;
+
+type
   TDMStorage = class(TDataModule)
     FDBConn: TFDConnection;
     FDQuery1: TFDQuery;

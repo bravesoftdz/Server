@@ -29,7 +29,7 @@ type
     FStorage: TDMStorage;
 
   public
-    /// <summary> Start a new thread and pass the argiument to the storage </summary>
+    /// <summary> Archive the request. </summary>
     procedure Archive(const data: TRequestType);
     destructor Destroy; override;
     procedure SetStorage(const St: TDMStorage);
@@ -46,9 +46,7 @@ uses
   System.SysUtils,
   Logger, Settings;
 
-
-  { TRequestHandler }
-
+{ TRequestHandler }
 
 destructor TRequestHandler.Destroy;
 begin

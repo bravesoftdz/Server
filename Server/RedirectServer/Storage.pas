@@ -88,6 +88,22 @@ type
     /// <summary> token under which the current cache size value is stored in the
     /// status object </summary>
     CACHE_SIZE_TOKEN = 'cache size';
+
+    // name of the attribute for the user name in the definition of the
+    // connection to the database
+    USER_NAME_TOKEN = 'User_Name';
+    // name of the attribute for the database name in the definition of the
+    // connection to the database
+    DB_TOKEN = 'Database';
+    // name of the attribute for the driver id in the definition of the
+    // connection to the database
+    DRIVER_TOKEN = 'DriverID';
+    // name of the attribute for the password in the definition of the
+    // connection to the database
+    PASSWORD_TOKEN = 'Password';
+    // name of the attribute for the server ip in the definition of the
+    // connection to the database
+    SERVER_TOKEN = 'Server';
     /// <summary> Constructs an insert-into-table statement for a
     /// table with a given name and column values</summary>
     function insertStatement(const tableName: String;
@@ -158,8 +174,6 @@ begin
   FCache.Clear;
   FCache.DisposeOf;
   FLockObject.DisposeOf;
-  // if not(FConnectionSettings = nil) then
-  // FConnectionSettings.DisposeOf;
   FLogger := nil;
   inherited;
 end;
@@ -205,11 +219,11 @@ procedure TDMStorage.configure(const parameters: TStorageConfig);
 begin
   /// save the provided connection parameters for further use
   FConnectionConfig.loadFrom(parameters);
-  FDBConn.params.Values['User_Name'] := FConnectionConfig.username;
-  FDBConn.params.Values['Database'] := FConnectionConfig.database;
-  FDBConn.params.Values['DriverID'] := FConnectionConfig.driverid;
-  FDBConn.params.Values['Password'] := FConnectionConfig.password;
-  FDBConn.params.Values['Server'] := FConnectionConfig.server;
+  FDBConn.params.Values[USER_NAME_TOKEN] := FConnectionConfig.username;
+  FDBConn.params.Values[DB_TOKEN] := FConnectionConfig.database;
+  FDBConn.params.Values[DRIVER_TOKEN] := FConnectionConfig.driverid;
+  FDBConn.params.Values[PASSWORD_TOKEN] := FConnectionConfig.password;
+  FDBConn.params.Values[SERVER_TOKEN] := FConnectionConfig.server;
   FMaxCacheSize := parameters.cachesize;
 end;
 
@@ -252,13 +266,13 @@ end;
 function TDMStorage.getStatus(): TJsonObject;
 begin
   Result := TJsonObject.Create;
-  Result.AddPair(CONNECTION_STATUS_TOKEN,
-    TJSonString.Create('username: ' + FConnectionConfig.username +
-    ', database: ' + FConnectionConfig.database + ', driverId: ' +
-    FConnectionConfig.driverid + ', password: ***, server: *** '));
+  Result.AddPair(USER_NAME_TOKEN, FConnectionConfig.username);
+  Result.AddPair(DB_TOKEN, FConnectionConfig.database);
+  Result.AddPair(DRIVER_TOKEN, FConnectionConfig.driverid);
+  Result.AddPair(PASSWORD_TOKEN, TJSONBool.Create(not FConnectionConfig.password.IsEmpty));
+  Result.AddPair(SERVER_TOKEN, FConnectionConfig.server);
   Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSonNumber.Create(FMaxCacheSize));
   Result.AddPair(CACHE_SIZE_TOKEN, TJSonNumber.Create(FCache.Count));
-
 end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;

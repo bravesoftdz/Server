@@ -58,6 +58,7 @@ type
     /// The directory name data.dir is relative with respect to the server executable path.
     /// </summary>
     procedure Configure(const data: TImageStorageConfig);
+    constructor Create();
   end;
 
 implementation
@@ -72,6 +73,10 @@ begin
   if (TDirectory.Exists(data.dir)) then
     TDirectory.CreateDirectory(data.dir);
   Self.BaseDirName := data.dir;
+end;
+
+constructor TImageStorage.Create;
+begin
   Self.nonSafePathPattern := TRegEx.Create('[^a-zA-Z0-9_\' + PathDelim + ']');
   Self.allowedImageExtensions := ['.png', '.jpg', '.jpeg'];
 end;

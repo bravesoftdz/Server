@@ -35,13 +35,16 @@ type
   TStorageConfig = class
   private
     FUserName, FDatabase, FDriverID, FPassword, FServer: String;
+    FCacheSize: Integer;
   published
     property username: String read FUserName write FUserName;
     property database: String read FDatabase write FDatabase;
     property driverid: String read FDriverID write FDriverID;
     property password: String read FPassword write FPassword;
     property server: String read FServer write FServer;
-
+    property cachesize: Integer read FCacheSize write FCacheSize;
+    /// <summary> assign values of the properties from given object</summary>
+    procedure loadFrom(const Data: TStorageConfig);
   end;
 
 type
@@ -53,7 +56,7 @@ type
     /// <summary> Create an UPDATE statement.
     /// No placeholders are used, so the resulting string is of the following form
     /// UPDATE `summary` SET `click` = `click` + 10, `view` = `view` + 6 WHERE `campaign` = "venditori";
-    /// < / summary >
+    /// </summary >
     function updateStatement(const tableName, row: String;
       const Data: TDictionary<String, Integer>): String;
   private
@@ -61,7 +64,9 @@ type
     FLogger: ILogger;
     /// <summary> Parameters of connection to a DB.
     /// </summary>
-    FConnectionSettings: TJsonObject;
+    // FConnectionSettings: TJsonObject;
+
+    FConnectionConfig: TStorageConfig;
     /// <summary>The number of objects to accumulate before write them in
     /// the database </summary>
     FMaxCacheSize: Integer;
@@ -103,14 +108,8 @@ type
     /// in TFDConn.</summary>
     procedure connect();
     /// <summary> FCacheSize setter</summary>
-    procedure setCacheSize(cacheSize: Integer);
+    procedure setCacheSize(cachesize: Integer);
 
-    /// <summary> Replace values of keys matching given criteria
-    /// by some hash values </summary>
-    // function hideValues_old(const Data: TJsonObject; const crit: TRegEx;
-    // const replace: String): TJsonObject;
-    function hideValues(const Data: TJsonObject; const crit: TRegEx;
-      callback: TFunc<String, String>): TJsonObject;
     /// <summary> Close (if it is open) the connection to the database
     /// established by means of ConnDef</summary>
     procedure Disconnect(const ConnDef: TFDConnection);
@@ -118,11 +117,7 @@ type
   public
     /// <summary> Set connection settings
     /// The argument is supposed to be not nil. </summary >
-    procedure setConnectionSettings(const parameters: TJsonObject);
-
-    /// <summary> Set properties related to the connection to the database and
-    /// the maximum size of the cache</summary >
-    procedure setProperties(const parameters: TJsonObject);
+    procedure configure(const parameters: TStorageConfig);
 
     /// <summary> Add the given request to the storage cache. Once its
     /// size exceeds FCacheSize, it should be written to the database
@@ -141,7 +136,7 @@ type
     procedure Commit();
 
     property Logger: ILogger write setLogger;
-    property cacheSize: Integer write setCacheSize;
+    property cachesize: Integer write setCacheSize;
   end;
 
 var
@@ -159,11 +154,12 @@ uses
 { TDataModule1 }
 destructor TDMStorage.Destroy;
 begin
+  FConnectionConfig.DisposeOf;
   FCache.Clear;
   FCache.DisposeOf;
   FLockObject.DisposeOf;
-  if not(FConnectionSettings = nil) then
-    FConnectionSettings.DisposeOf;
+  // if not(FConnectionSettings = nil) then
+  // FConnectionSettings.DisposeOf;
   FLogger := nil;
   inherited;
 end;
@@ -173,6 +169,7 @@ begin
   inherited;
   FCache := TObjectList<TRequestType>.Create;
   FLockObject := TObject.Create;
+  FConnectionConfig := TStorageConfig.Create;
 end;
 
 procedure TDMStorage.connect();
@@ -204,44 +201,16 @@ begin
   end;
 end;
 
-procedure TDMStorage.setConnectionSettings(const parameters: TJsonObject);
-var
-  pair: TJsonPair;
+procedure TDMStorage.configure(const parameters: TStorageConfig);
 begin
-  /// clean previous settings if they exist
-  if not(FConnectionSettings = nil) then
-    FConnectionSettings.DisposeOf;
-  FConnectionSettings := parameters.Clone as TJsonObject;
-  if not(FConnectionSettings = nil) then
-  begin
-    for pair in FConnectionSettings do
-    begin
-      FDBConn.params.Values[pair.JsonString.value] := pair.JsonValue.value;
-    end;
-  end;
-end;
-
-procedure TDMStorage.setProperties(const parameters: TJsonObject);
-var
-  maxCacheSize, connJV: TJsonValue;
-  maxCacheSizeInt: Integer;
-begin
-  maxCacheSize := parameters.Values[MAX_CACHE_SIZE_TOKEN];
-  if not(maxCacheSize = nil) then
-  begin
-    if (maxCacheSize is TJSonNumber) then
-    begin
-      maxCacheSizeInt := (maxCacheSize as TJSonNumber).AsInt;
-      if maxCacheSizeInt >= 0 then
-        FMaxCacheSize := maxCacheSizeInt;
-    end;
-  end;
-  connJV := parameters.Values[CONNECTION_STATUS_TOKEN];
-  if (connJV is TJsonObject) then
-  begin
-    setConnectionSettings(connJV as TJsonObject);
-  end;
-
+  /// save the provided connection parameters for further use
+  FConnectionConfig.loadFrom(parameters);
+  FDBConn.params.Values['User_Name'] := FConnectionConfig.username;
+  FDBConn.params.Values['Database'] := FConnectionConfig.database;
+  FDBConn.params.Values['DriverID'] := FConnectionConfig.driverid;
+  FDBConn.params.Values['Password'] := FConnectionConfig.password;
+  FDBConn.params.Values['Server'] := FConnectionConfig.server;
+  FMaxCacheSize := parameters.cachesize;
 end;
 
 procedure TDMStorage.DataModuleDestroy(Sender: TObject);
@@ -283,15 +252,10 @@ end;
 function TDMStorage.getStatus(): TJsonObject;
 begin
   Result := TJsonObject.Create;
-  if (FConnectionSettings = nil) then
-    Result.AddPair(CONNECTION_STATUS_TOKEN, TJsonBool.Create(False))
-  else
-    Result.AddPair(CONNECTION_STATUS_TOKEN, hideValues(FConnectionSettings,
-      TRegEx.Create('password|user_name', [roIgnoreCase]),
-      function(input: String): String
-      begin
-        Result := TRegEx.Create('.').replace(input, '*');
-      end));
+  Result.AddPair(CONNECTION_STATUS_TOKEN,
+    TJSonString.Create('username: ' + FConnectionConfig.username +
+    ', database: ' + FConnectionConfig.database + ', driverId: ' +
+    FConnectionConfig.driverid + ', password: ***, server: *** '));
   Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSonNumber.Create(FMaxCacheSize));
   Result.AddPair(CACHE_SIZE_TOKEN, TJSonNumber.Create(FCache.Count));
 
@@ -375,13 +339,13 @@ end;
 { Concatenates the string list elements with a given separator being put between
   the elements. }
 function TDMStorage.concatList(const list: TStringList;
-const separator: Char): String;
+  const separator: Char): String;
 begin
   Result := list.Text.Trim.replace(sLineBreak, separator, [rfReplaceAll]);
 end;
 
 procedure TDMStorage.createSummaryRow(const tableName, line: String;
-const Data: TDictionary<String, Integer>);
+  const Data: TDictionary<String, Integer>);
 const
   FIELDSEPARATOR = ',';
 var
@@ -425,25 +389,8 @@ begin
   end;
 end;
 
-function TDMStorage.hideValues(const Data: TJsonObject; const crit: TRegEx;
-callback: TFunc<String, String>): TJsonObject;
-var
-  pair: TJsonPair;
-  key: String;
-begin
-  Result := TJsonObject.Create;
-  for pair in Data do
-  begin
-    key := pair.JsonString.value;
-    if crit.IsMatch(key) then
-      Result.AddPair(key, callback(pair.JsonValue.value))
-    else
-      Result.AddPair(pair.Clone as TJsonPair)
-  end;
-end;
-
 function TDMStorage.updateStatement(const tableName, row: String;
-const Data: TDictionary<String, Integer>): String;
+  const Data: TDictionary<String, Integer>): String;
 const
   TAG = 'TDMStorage.updateStatement';
   COMMA_SEPARATOR = ',';
@@ -468,7 +415,7 @@ begin
 end;
 
 procedure TDMStorage.updateSummaryRow(const tableName, line: String;
-const Data: TDictionary<String, Integer>);
+  const Data: TDictionary<String, Integer>);
 var
   statement: String;
   Values: TArray<Integer>;
@@ -478,10 +425,10 @@ begin
   FDBConn.ExecSQL(statement, []);
 end;
 
-procedure TDMStorage.setCacheSize(cacheSize: Integer);
+procedure TDMStorage.setCacheSize(cachesize: Integer);
 begin
-  if (cacheSize >= 0) then
-    FMaxCacheSize := cacheSize;
+  if (cachesize >= 0) then
+    FMaxCacheSize := cachesize;
 end;
 
 procedure TDMStorage.add(const item: TRequestType);
@@ -516,6 +463,15 @@ begin
     TMonitor.Exit(FLockObject);
   end;
 
+end;
+
+procedure TStorageConfig.loadFrom(const Data: TStorageConfig);
+begin
+  username := Data.username;
+  database := Data.database;
+  driverid := Data.driverid;
+  password := Data.password;
+  server := Data.server;
 end;
 
 end.

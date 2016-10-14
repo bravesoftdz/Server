@@ -580,7 +580,6 @@ begin
 
   TRedirectController.Logger := TLogger.Create();
   TRedirectController.Router := TRouter.Create;
-  TRedirectController.Router.setLogger(TRedirectController.Logger);
   TRedirectController.Storage := TDMStorage.Create(nil);
   TRedirectController.Storage.Logger := TRedirectController.Logger;
   TRedirectController.RequestHandler := TRequestHandler.Create;

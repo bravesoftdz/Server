@@ -16,7 +16,6 @@ type
     procedure addRoutes(const routes: TObjectList<TRouteMapper>);
     procedure delete(const routes: TJsonArray);
     function getStatus(): TJsonObject;
-    procedure setLogger(const Logger: ILogger);
   end;
 
 implementation

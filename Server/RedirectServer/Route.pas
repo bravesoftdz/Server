@@ -9,9 +9,10 @@ uses
   ServerConfig,
   InterfaceLogger, System.Classes;
 
-type TRouteConfig = class
+type
+  TRouteConfig = class
 
-end;
+  end;
 
 type
   /// <summary>Manage routes.
@@ -25,8 +26,6 @@ type
   private
     /// <summary> A dictionary of the redirects </summary>
     FMapper: TDictionary<String, String>;
-    /// <summary>[Optional] a logger by means of which to log important events.</summary>
-    FLogger: ILogger;
   public
     /// <summary>Retrieve an url corresponding to the argument.</summary>
     function getUrl(const campaign: String; article: String): String; overload;
@@ -49,9 +48,6 @@ type
     destructor Destroy; override;
     /// <summary>Return the router status </summary>
     function getStatus(): TJsonObject;
-    /// <summary> logger setter</summary>
-    procedure setLogger(const Logger: ILogger);
-
   end;
 
 implementation
@@ -69,7 +65,6 @@ destructor TRouter.Destroy;
 begin
   FMapper.Clear;
   FMapper.DisposeOf;
-  FLogger := nil;
   inherited;
 end;
 
@@ -114,11 +109,6 @@ begin
   end
 end;
 
-procedure TRouter.setLogger(const Logger: ILogger);
-begin
-  self.FLogger := Logger;
-end;
-
 procedure TRouter.setRoutes(const routes: TDictionary<String, String>);
 var
   item: TPair<String, String>;
@@ -143,7 +133,6 @@ end;
 function TRouter.getStatus: TJsonObject;
 begin
   Result := TJsonObject.Create;
-  Result.AddPair('logger', TJSonBool.Create(assigned(FLogger)));
   Result.AddPair('routes', TJSonNumber.Create(FMapper.Count));
 end;
 

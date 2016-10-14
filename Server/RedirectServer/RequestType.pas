@@ -23,6 +23,7 @@ type
     procedure setField(const fieldName, fieldValue: String);
     constructor Create;
     destructor Destroy; override;
+    procedure LogIfPossible(const level: TLEVELS; const tag, msg: String);
   end;
 
 implementation
@@ -52,18 +53,23 @@ begin
   Result := FKeyValue;
 end;
 
+procedure TRequestType.LogIfPossible(const level: TLEVELS;
+  const tag, msg: String);
+begin
+  if not(FLogger = nil) then
+    FLogger.log(level, tag, msg);
+end;
+
 procedure TRequestType.setField(const fieldName, fieldValue: String);
 const
-  TAG = 'TRequestType.setField';
+  tag = 'TRequestType.setField';
 begin
   inherited;
   if MatchStr(fieldName, getFieldNames) then
     FKeyValue.Add(fieldName, truncateString(fieldValue, MAXSTRLEN))
   else
-  begin
-    FLogger.logWarning(TAG, 'field name ' + fieldName +
+    LogIfPossible(TLEVELS.WARNING, tag, 'field name ' + fieldName +
       ' is not among allowed ones.');
-  end;
 
 end;
 

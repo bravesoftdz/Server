@@ -11,7 +11,7 @@ type
     MAXSTRLEN = 255;
   protected
     FKeyValue: TDictionary<String, String>;
-    class var Logger: ILogger;
+    FLogger: ILogger;
 
   public
     function truncateString(const str: String; const len: Integer): String;
@@ -61,7 +61,7 @@ begin
     FKeyValue.Add(fieldName, truncateString(fieldValue, MAXSTRLEN))
   else
   begin
-    Logger.logWarning(TAG, 'field name ' + fieldName +
+    FLogger.logWarning(TAG, 'field name ' + fieldName +
       ' is not among allowed ones.');
   end;
 

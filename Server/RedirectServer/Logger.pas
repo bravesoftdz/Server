@@ -5,8 +5,6 @@ interface
 uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON,
   System.SysUtils, LoggerConfig;
 
-type
-  TLEVELS = (ACCESS, WARNING, EXC, INFO);
 
 type
   TLogger = class(TInterfacedObject, ILogger)
@@ -15,19 +13,6 @@ type
     LogDir: String;
     CurrentSize: Integer;
     MaxCacheSize: Integer;
-
-    // const
-    // LEVEL_ACCESS: String = 'access';
-
-    // const
-    // LEVEL_WARNING: String = 'warning';
-
-    // const
-    // LEVEL_EXCEPTION: String = 'exception';
-
-    // const
-    // LEVEL_INFO: String = 'info';
-
     /// <summary>path name pattern of the log file.
     /// The pat is relative with respect to LogDir. </summary>
   const

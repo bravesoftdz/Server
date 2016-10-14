@@ -131,7 +131,7 @@ type
     procedure Disconnect(const ConnDef: TFDConnection);
 
     /// <summary>Log the message if possible.</summary>
-    procedure LogIfPossible(const tag, msg: String);
+    procedure LogIfPossible(const level: TLEVELS; const tag, msg: string);
 
   public
     /// <summary> Set connection settings
@@ -195,10 +195,10 @@ const
 begin
   try
     FDBConn.Connected := True;
-//    LogIfPossible(tag, 'Connected!');
+    LogIfPossible(TLEVELS.INFO, tag, 'Connected!');
   except
     on e: Exception do
-      LogIfPossible(tag, e.message);
+      LogIfPossible(TLEVELS.EXC, tag, e.message);
   end;
 end;
 
@@ -207,7 +207,7 @@ begin
   if (not(FDBConn = nil)) AND (FDBConn.Connected) then
   begin
     FDBConn.Connected := False;
-    LogIfPossible('TDMStorage.Disconnect', 'Disconnect');
+    LogIfPossible(TLEVELS.INFO, 'TDMStorage.Disconnect', 'Disconnect');
   end;
 end;
 
@@ -291,8 +291,7 @@ begin
   end;
   if not(FDBConn.Connected) then
   begin
-    if not(FLogger = nil) then
-      FLogger.logWarning(tag, 'Failed to connect to the database.');
+    LogIfPossible(TLEVELS.WARNING, tag, 'Failed to connect to the database.');
     Exit();
   End;
 
@@ -323,7 +322,7 @@ begin
     on e: Exception do
     begin
       FDBConn.Rollback;
-      FLogger.logException(tag, e.message);
+      LogIfPossible(TLEVELS.EXC, tag, e.message);
       empty(summary);
       raise;
     end;
@@ -462,13 +461,11 @@ begin
       if outcome then
         FCache.Clear
       else
-        FLogger.logWarning(tag,
+        LogIfPossible(TLEVELS.WARNING, tag,
           'Saving of the statistics to the DB has been postponed.');
     except
       on e: Exception do
-      begin
-        FLogger.logException(tag, e.message);
-      end;
+        LogIfPossible(TLEVELS.EXC, tag, e.message);
     end;
   finally
     TMonitor.Exit(FLockObject);
@@ -476,10 +473,11 @@ begin
 
 end;
 
-procedure TDMStorage.LogIfPossible(const tag: string; const msg: string);
+procedure TDMStorage.LogIfPossible(const level: TLEVELS;
+  const tag, msg: string);
 begin
   if not(FLogger = nil) then
-    FLogger.logInfo(tag, msg);
+    FLogger.log(level, tag, msg);
 end;
 
 procedure TStorageConfig.loadFrom(const Data: TStorageConfig);

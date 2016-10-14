@@ -130,6 +130,9 @@ type
     /// established by means of ConnDef</summary>
     procedure Disconnect(const ConnDef: TFDConnection);
 
+    /// <summary>Log the message if possible.</summary>
+    procedure LogIfPossible(const tag, msg: String);
+
   public
     /// <summary> Set connection settings
     /// The argument is supposed to be not nil. </summary >
@@ -188,20 +191,14 @@ end;
 
 procedure TDMStorage.connect();
 const
-  TAG: String = 'TDMStorage.connect';
-var
-  pair: TJsonPair;
+  tag: String = 'TDMStorage.connect';
 begin
   try
     FDBConn.Connected := True;
-    if not(FLogger = nil) then
-      FLogger.logInfo(TAG, 'Connected!');
+//    LogIfPossible(tag, 'Connected!');
   except
     on e: Exception do
-    begin
-      if not(FLogger = nil) then
-        FLogger.logException(TAG, e.Message);
-    end;
+      LogIfPossible(tag, e.message);
   end;
 end;
 
@@ -210,8 +207,7 @@ begin
   if (not(FDBConn = nil)) AND (FDBConn.Connected) then
   begin
     FDBConn.Connected := False;
-    if not(FLogger = nil) then
-      FLogger.logInfo('TDMStorage.Disconnect', 'Disconnect');
+    LogIfPossible('TDMStorage.Disconnect', 'Disconnect');
   end;
 end;
 
@@ -240,7 +236,7 @@ end;
 function TDMStorage.insertStatement(const tableName: String;
   const Data: TDictionary<String, String>): String;
 const
-  TAG: String = 'TDMStorage.insertRedirect';
+  tag: String = 'TDMStorage.insertRedirect';
   FIELDNAMEWRAPPER: String = '`';
   FIELDSEPARATOR = ',';
 var
@@ -269,7 +265,8 @@ begin
   Result.AddPair(USER_NAME_TOKEN, FConnectionConfig.username);
   Result.AddPair(DB_TOKEN, FConnectionConfig.database);
   Result.AddPair(DRIVER_TOKEN, FConnectionConfig.driverid);
-  Result.AddPair(PASSWORD_TOKEN, TJSONBool.Create(not FConnectionConfig.password.IsEmpty));
+  Result.AddPair(PASSWORD_TOKEN,
+    TJSONBool.Create(not FConnectionConfig.password.IsEmpty));
   Result.AddPair(SERVER_TOKEN, FConnectionConfig.server);
   Result.AddPair(MAX_CACHE_SIZE_TOKEN, TJSonNumber.Create(FMaxCacheSize));
   Result.AddPair(CACHE_SIZE_TOKEN, TJSonNumber.Create(FCache.Count));
@@ -277,7 +274,7 @@ end;
 
 function TDMStorage.save(const items: TObjectList<TRequestType>): Boolean;
 const
-  TAG: String = 'TDMStorage.save';
+  tag: String = 'TDMStorage.save';
   separator: String = ', ';
   FIELDNAMEWRAPPER: String = '`';
   PLACEHOLDERVALUE: String = ':a';
@@ -295,7 +292,7 @@ begin
   if not(FDBConn.Connected) then
   begin
     if not(FLogger = nil) then
-      FLogger.logWarning(TAG, 'Failed to connect to the database.');
+      FLogger.logWarning(tag, 'Failed to connect to the database.');
     Exit();
   End;
 
@@ -326,7 +323,7 @@ begin
     on e: Exception do
     begin
       FDBConn.Rollback;
-      FLogger.logException(TAG, e.Message);
+      FLogger.logException(tag, e.message);
       empty(summary);
       raise;
     end;
@@ -406,7 +403,7 @@ end;
 function TDMStorage.updateStatement(const tableName, row: String;
   const Data: TDictionary<String, Integer>): String;
 const
-  TAG = 'TDMStorage.updateStatement';
+  tag = 'TDMStorage.updateStatement';
   COMMA_SEPARATOR = ',';
   FIELDNAMEWRAPPER = '`';
 
@@ -454,7 +451,7 @@ end;
 
 procedure TDMStorage.Commit();
 const
-  TAG: String = 'TDMStorage.Commit';
+  tag: String = 'TDMStorage.Commit';
 var
   outcome: Boolean;
 begin
@@ -465,18 +462,24 @@ begin
       if outcome then
         FCache.Clear
       else
-        FLogger.logWarning(TAG,
+        FLogger.logWarning(tag,
           'Saving of the statistics to the DB has been postponed.');
     except
       on e: Exception do
       begin
-        FLogger.logException(TAG, e.Message);
+        FLogger.logException(tag, e.message);
       end;
     end;
   finally
     TMonitor.Exit(FLockObject);
   end;
 
+end;
+
+procedure TDMStorage.LogIfPossible(const tag: string; const msg: string);
+begin
+  if not(FLogger = nil) then
+    FLogger.logInfo(tag, msg);
 end;
 
 procedure TStorageConfig.loadFrom(const Data: TStorageConfig);

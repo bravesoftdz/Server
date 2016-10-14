@@ -5,6 +5,8 @@ interface
 uses InterfaceLogger, System.Classes, System.Generics.Collections, System.JSON,
   System.SysUtils, LoggerConfig;
 
+type
+  TLEVELS = (ACCESS, WARNING, EXC, INFO);
 
 type
   TLogger = class(TInterfacedObject, ILogger)
@@ -14,17 +16,17 @@ type
     CurrentSize: Integer;
     MaxCacheSize: Integer;
 
-  const
-    LEVEL_ACCESS: String = 'access';
+    // const
+    // LEVEL_ACCESS: String = 'access';
 
-  const
-    LEVEL_WARNING: String = 'warning';
+    // const
+    // LEVEL_WARNING: String = 'warning';
 
-  const
-    LEVEL_EXCEPTION: String = 'exception';
+    // const
+    // LEVEL_EXCEPTION: String = 'exception';
 
-  const
-    LEVEL_INFO: String = 'info';
+    // const
+    // LEVEL_INFO: String = 'info';
 
     /// <summary>path name pattern of the log file.
     /// The pat is relative with respect to LogDir. </summary>
@@ -60,8 +62,8 @@ type
     /// It can contain only alphanumeric symbols, underscore and the path delimiter </param>
     /// <param name="MaxCacheSize">max number of records to maintain in memory
     /// before saving in a file </param>
-//    constructor Create(const DirName: String;
-//      const MaxCacheSize: Integer); overload;
+    // constructor Create(const DirName: String;
+    // const MaxCacheSize: Integer); overload;
     /// <summary>Constructor that sets only the maximal cache size to the default value
     /// and does not set a directory in which to save the log files.</summary>
     /// <param name="DirName">name of directory in which the log files are saved.
@@ -72,7 +74,7 @@ type
 
     destructor Destroy; override;
 
-    procedure log(const level, source, msg: String);
+    procedure log(const level: TLEVELS; const source, msg: String);
     procedure logAccess(const source, msg: String);
     procedure logWarning(const source, msg: String);
     procedure logException(const source, msg: String);
@@ -111,22 +113,22 @@ end;
 
 procedure TLogger.logAccess(const source, msg: String);
 begin
-  log(LEVEL_ACCESS, source, msg);
+  log(ACCESS, source, msg);
 end;
 
 procedure TLogger.logException(const source, msg: String);
 begin
-  log(LEVEL_EXCEPTION, source, msg);
+  log(EXC, source, msg);
 end;
 
 procedure TLogger.logInfo(const source, msg: String);
 begin
-  log(LEVEL_INFO, source, msg);
+  log(INFO, source, msg);
 end;
 
 procedure TLogger.logWarning(const source, msg: String);
 begin
-  log(LEVEL_WARNING, source, msg);
+  log(WARNING, source, msg);
 end;
 
 procedure TLogger.setLogDir(const dir: String);
@@ -162,11 +164,11 @@ begin
     setLogDir(params.Values[LOG_DIR_TOKEN].Value);
 end;
 
-procedure TLogger.log(const level, source, msg: String);
+procedure TLogger.log(const level: TLEVELS; const source, msg: String);
 var
   currentTime: TDateTime;
   list: TStringList;
-  fullPath, FullMessage: String;
+  fullPath, FullMessage, levelStr: String;
 begin
   currentTime := Now;
   fullPath := formatdatetime(FILE_PATH_PATTERN, currentTime);
@@ -175,7 +177,19 @@ begin
 
   if not(Cache.ContainsKey(fullPath)) then
     Cache.Add(fullPath, TStringList.Create);
-  FullMessage := DateTimeToStr(currentTime) + ' ' + level + ' ' + source +
+  case level of
+    ACCESS:
+      levelStr := 'Access';
+    WARNING:
+      levelStr := 'Warning';
+    EXC:
+      levelStr := 'Exception';
+    INFO:
+      levelStr := 'Info';
+  else
+    levelStr := 'General';
+  end;
+  FullMessage := DateTimeToStr(currentTime) + ' ' + levelStr + ' ' + source +
     ' ' + msg;
   list := Cache.Items[fullPath];
   list.Add(FullMessage);
@@ -203,11 +217,11 @@ begin
   configure(data);
 end;
 
-//constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
-//begin
-//  Create;
-//  configure(DirName, MaxCacheSize);
-//end;
+// constructor TLogger.Create(const DirName: String; const MaxCacheSize: Integer);
+// begin
+// Create;
+// configure(DirName, MaxCacheSize);
+// end;
 
 constructor TLogger.Create;
 const
@@ -298,6 +312,5 @@ begin
 end;
 
 { TLoggerConfig }
-
 
 end.

@@ -38,6 +38,9 @@ type
       const params: TDictionary<String, String>): String;
     class procedure StartServer();
     class procedure StopServer();
+    /// <summary>Load configuration from the file whose name is stored
+    /// in ServerConfigPath</sumamry>
+    class procedure LoadConfig();
     /// <summary>Validate given argument and in case of success, set
     /// the image dir to that value.
     /// A valid directory name may contain only alphanumeric symbols, underscore
@@ -87,8 +90,8 @@ type
     /// Make the server flush the content of its components (records stored in
     /// caches of the logger, storage) and re-read the config file.
     [MVCPath('/server/reload')]
-    [MVCHTTPMethod([httpGET])]
-    // procedure reload(ctx: TWebContext);
+    [MVCHTTPMethod([httpPOST])]
+    procedure reload(ctx: TWebContext);
 
     /// Redirect to an url corresponding to the given path.
     /// The url-to-path map is taken from the config file.
@@ -212,6 +215,13 @@ begin
   resourse := request.params['campaign'] + '/' + request.params['article'];
   ArchiveAndRedirect(request.params['campaign'],
     request.params['article'], '', ctx);
+end;
+
+procedure TRedirectController.reload(ctx: TWebContext);
+begin
+    TRedirectController.Storage.Commit;
+    TRedirectController.Logger.flushCache;
+    LoadConfig;
 end;
 
 procedure TRedirectController.redirectAndTrack(ctx: TWebContext);
@@ -390,6 +400,30 @@ begin
   Render(status);
 end;
 
+class procedure TRedirectController.LoadConfig;
+const
+  TAG = 'TAdvStatsController.LoadConfig';
+var
+  ServerConfig: TServerConfig;
+begin
+  ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
+  if Assigned(ServerConfig) then
+  begin
+    TRedirectController.Logger.logInfo(TAG, 'Loading the configuration.');
+    TRedirectController.Logger.Configure(ServerConfig.Logger);
+    TRedirectController.Router.addRoutes(ServerConfig.routes);
+    TRedirectController.Storage.Configure(ServerConfig.DbStorage);
+    TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
+    ServerConfig.DisposeOf;
+  end
+  else
+  begin
+    TRedirectController.Logger.logInfo(TAG,
+      'Configuration is malformed. Ignoring it.');
+  end
+
+end;
+
 procedure TRedirectController.getCampaignImage(ctx: TWebContext);
 var
   imageName, campaign: String;
@@ -527,8 +561,6 @@ end;
 
 { Initialize the server parameters }
 class procedure TRedirectController.StartServer;
-var
-  ServerConfig: TServerConfig;
 begin
   if ParamCount >= 1 then
     TRedirectController.ServerConfigPath := paramstr(1)
@@ -554,50 +586,10 @@ begin
   TRedirectController.RequestHandler := TRequestHandler.Create;
   TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-   TRedirectController.ImageStorage := TImageStorage.Create();
+  TRedirectController.ImageStorage := TImageStorage.Create();
 
-  ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
-  if Assigned(ServerConfig) then
-  begin
-    TRedirectController.Logger.Configure(ServerConfig.Logger);
-    TRedirectController.Router.addRoutes(ServerConfig.routes);
-    TRedirectController.Storage.configure(ServerConfig.DbStorage);
-
-     TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
-
-    TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
-      'Start the server with custom settings.');
-    ServerConfig.DisposeOf;
-  end
-  else
-  begin
-    TRedirectController.Logger.logInfo('TAdvStatsController.StartServer',
-      'Start the server with default settings.');
-
-  end
-
-  // TRedirectController.Route := TRoute.Create;
-  // TRedirectController.Route.setLogger(TRedirectController.Logger);
-  // TRedirectController.Route.addRoutes
-  // (StringToJsonObject(TRedirectController.ServerConfig.router));
-  //
-  // TRedirectController.Storage := TDMStorage.Create(nil);
-  // TRedirectController.Storage.CacheSize := 10;
-  // TRedirectController.Storage.Logger := TRedirectController.Logger;
-  //
-  // TRedirectController.RequestHandler := TRequestHandler.Create;
-  // TRedirectController.RequestHandler.Storage := TRedirectController.Storage;
-  // TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
-  //
-  // TRedirectController.ImageStorage := TImageStorage.Create('images' + PathDelim)
+  LoadConfig();
 end;
-
-// class function TRedirectController.StringToJsonObject(const str: String): TJsonObject;
-// begin
-// Result := TJsonObject.ParseJSONValue
-// (TEncoding.ASCII.GetBytes(TRedirectController.ServerConfig.Logger), 0)
-// as TJsonObject
-// end;
 
 function TRedirectController.feedQueryParams(const Base: String;
 const params: TDictionary<String, String>): String;

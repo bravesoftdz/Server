@@ -8,7 +8,7 @@ uses
   Route, System.Classes,
   InterfaceRoute, System.JSON, System.Generics.Collections,
   Settings, Storage, Logger, RequestHandler, InterfaceLogger,
-  MVCFramework.Commons, ImageStorage, ServerConfig;
+  MVCFramework.Commons, ImageStorage, ServerConfig, InterfaceLoggable;
 
 type
 
@@ -20,7 +20,7 @@ type
     LOGGER_TOKEN: String = 'logger status';
     ROUTER_TOKEN: String = 'router status';
     STORAGE_TOKEN: String = 'storage status';
-    // class var Settings: TSettings;
+
     class var Router: IRoute;
     class var RequestHandler: IRequestHandler;
     class var Storage: TDMStorage;
@@ -40,7 +40,7 @@ type
     class procedure StopServer();
     /// <summary>Load configuration from the file whose name is stored
     /// in ServerConfigPath</sumamry>
-    class procedure LoadConfig();
+    class procedure Configure();
     /// <summary>Validate given argument and in case of success, set
     /// the image dir to that value.
     /// A valid directory name may contain only alphanumeric symbols, underscore
@@ -59,6 +59,7 @@ type
       var Handled: Boolean); override;
 
   public
+    class procedure LogIfPossible(const level: TLEVELS; const tag, msg: string);
 
     // [MVCHTTPMethod([httpGET])]
     // [MVCPath('/echo/($text)')]
@@ -219,9 +220,9 @@ end;
 
 procedure TRedirectController.reload(ctx: TWebContext);
 begin
-    TRedirectController.Storage.Commit;
-    TRedirectController.Logger.flushCache;
-    LoadConfig;
+  TRedirectController.Storage.Commit;
+  TRedirectController.Logger.flushCache;
+  Configure;
 end;
 
 procedure TRedirectController.redirectAndTrack(ctx: TWebContext);
@@ -249,7 +250,7 @@ end;
 procedure TRedirectController.ArchiveAndRedirect(const campaign, article,
   track: String; const ctx: TWebContext);
 const
-  TAG: String = 'TAdvStatsController.ArchiveAndRedirect';
+  tag: String = 'TAdvStatsController.ArchiveAndRedirect';
 
 var
   bareUrl, url, userAgent, ip, resourse, queryStr: String;
@@ -262,7 +263,11 @@ begin
   resourse := campaign + '/' + article;
   bareUrl := Router.getUrl(campaign, article);
 
-  if not(bareUrl.isEmpty) then
+  if (bareUrl.isEmpty) then
+    LogIfPossible(TLEVELS.INFO, tag, 'campaign: ' + campaign +
+      ', no redirect for ' + request.PathInfo + ': ip = ' +
+      ctx.request.ClientIP)
+  else
   begin
     ip := request.ClientIP;
     userAgent := request.Headers['User-Agent'];
@@ -286,11 +291,6 @@ begin
         RequestHandler.Archive(click);
       end).start;
     Redirect(url);
-  end
-  else
-  begin
-    Logger.logInfo(TAG, 'campaign: ' + campaign + ', no redirect for ' +
-      request.PathInfo + ': ip = ' + ctx.request.ClientIP);
   end;
 
 end;
@@ -400,16 +400,16 @@ begin
   Render(status);
 end;
 
-class procedure TRedirectController.LoadConfig;
+class procedure TRedirectController.Configure;
 const
-  TAG = 'TAdvStatsController.LoadConfig';
+  tag = 'TAdvStatsController.LoadConfig';
 var
   ServerConfig: TServerConfig;
 begin
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
-    TRedirectController.Logger.logInfo(TAG, 'Loading the configuration.');
+    TRedirectController.LogIfPossible(TLEVELS.INFO, tag, 'Loading the configuration.');
     TRedirectController.Logger.Configure(ServerConfig.Logger);
     TRedirectController.Router.addRoutes(ServerConfig.routes);
     TRedirectController.Storage.Configure(ServerConfig.DbStorage);
@@ -417,10 +417,15 @@ begin
     ServerConfig.DisposeOf;
   end
   else
-  begin
-    TRedirectController.Logger.logInfo(TAG,
+    LogIfPossible(TLEVELS.INFO, tag,
       'Configuration is malformed. Ignoring it.');
-  end
+end;
+
+class procedure TRedirectController.LogIfPossible(const level: TLEVELS;
+const tag, msg: string);
+begin
+  if not(TRedirectController.Logger = nil) then
+    TRedirectController.Logger.log(level, tag, msg);
 
 end;
 
@@ -516,7 +521,6 @@ end;
 procedure TRedirectController.SetConfigFilePath(const path: String);
 begin
   TRedirectController.ServerConfig := TServerConfig.Create(path);
-
 end;
 
 procedure TRedirectController.SetImagesDir(const dirName: String);
@@ -577,7 +581,6 @@ begin
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
     StopServer();
   end;
-
   TRedirectController.Logger := TLogger.Create();
   TRedirectController.Router := TRouter.Create;
   TRedirectController.Storage := TDMStorage.Create(nil);
@@ -587,7 +590,7 @@ begin
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
   TRedirectController.ImageStorage := TImageStorage.Create();
 
-  LoadConfig();
+  Configure();
 end;
 
 function TRedirectController.feedQueryParams(const Base: String;
@@ -617,11 +620,6 @@ begin
   end;
   Result := StringReplace(Base, query, queryBound, [rfReplaceAll]);
 end;
-
-// procedure TRedirectController.flushStatistics(ctx: TWebContext);
-// begin
-// Storage.commit();
-// end;
 
 initialization
 

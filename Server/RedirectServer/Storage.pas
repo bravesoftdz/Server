@@ -29,7 +29,7 @@ uses
   FireDAC.Moni.RemoteClient,
   System.Generics.Collections, FireDAC.VCLUI.Wait, uTPLb_Hash,
   uTPLb_BaseNonVisualComponent, System.Classes, InterfaceLogger,
-  System.RegularExpressions, System.SysUtils;
+  System.RegularExpressions, System.SysUtils, InterfaceLoggable;
 
 type
   TStorageConfig = class
@@ -48,7 +48,7 @@ type
   end;
 
 type
-  TDMStorage = class(TDataModule)
+  TDMStorage = class(TDataModule, ILoggable)
     FDBConn: TFDConnection;
     FDQuery1: TFDQuery;
     FDMoniRemoteClientLink1: TFDMoniRemoteClientLink;

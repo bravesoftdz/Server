@@ -3,10 +3,10 @@ unit RequestType;
 interface
 
 uses System.Classes, System.Rtti, System.SysUtils, System.Generics.Collections,
-  System.StrUtils, Logger, InterfaceLogger;
+  System.StrUtils, Logger, InterfaceLogger, InterfaceLoggable;
 
 type
-  TRequestType = class abstract
+  TRequestType = class abstract (TInterfacedObject, ILoggable)
   const
     MAXSTRLEN = 255;
   protected

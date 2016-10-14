@@ -31,7 +31,8 @@ uses
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas' {$R *.res},
   ImageStorage in 'ImageStorage.pas',
   ServerConfig in 'ServerConfig.pas',
-  LoggerConfig in 'LoggerConfig.pas';
+  LoggerConfig in 'LoggerConfig.pas',
+  InterfaceLoggable in 'InterfaceLoggable.pas';
 
 {$R *.res}
 

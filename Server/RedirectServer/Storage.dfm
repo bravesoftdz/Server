@@ -4,6 +4,11 @@ object DMStorage: TDMStorage
   Height = 461
   Width = 638
   object FDBConn: TFDConnection
+    Params.Strings = (
+      'Server=192.168.5.45'
+      'Database=advlite_dev'
+      'User_Name=abc'
+      'DriverID=MySQL')
     Left = 104
     Top = 40
   end

@@ -41,18 +41,6 @@ type
     /// <summary>Load configuration from the file whose name is stored
     /// in ServerConfigPath</sumamry>
     class procedure Configure();
-    /// <summary>Validate given argument and in case of success, set
-    /// the image dir to that value.
-    /// A valid directory name may contain only alphanumeric symbols, underscore
-    /// and the path delimiters. </summary>
-    procedure SetImagesDir(const dirName: String); overload;
-    /// <summary>Convert string into a json object</summary>
-    /// <param name="str">string containing a valid json object</param>
-    // class function StringToJsonObject(const str: String): TJsonObject;
-
-    // procedure SaveImage(const dir: String; const ctx: TWebContext);
-    /// Delete an image in a given location inside the image storage
-    // procedure DeleteImage(const path: String);
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -82,11 +70,12 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getCampaignImageWithTrack(ctx: TWebContext);
 
-    /// Get the status of the server and of all its compenents (logger,
-    /// router and storage (if any))
+    /// Get the status of the server along with all its components (logger,
+    /// router, db storage, image storage)
+    /// The compoenents' statuses are delegated to the components themselves.
     [MVCPath('/server/status')]
     [MVCHTTPMethod([httpGET])]
-    procedure getStatusComponents(ctx: TWebContext);
+    procedure getStatus(ctx: TWebContext);
 
     /// Make the server flush the content of its components (records stored in
     /// caches of the logger, storage) and re-read the config file.
@@ -95,14 +84,18 @@ type
     procedure reload(ctx: TWebContext);
 
     /// Redirect to an url corresponding to the given path.
+    /// The request gets archived.
     /// The url-to-path map is taken from the config file.
+    /// If no url is found, no redirect occurs.
     [MVCPath('/($campaign)/($article)')]
     [MVCHTTPMethod([httpGET])]
     [MVCProduces('text/html', 'UTF-8')]
     procedure redirectNoTrack(ctx: TWebContext);
 
     /// Redirect to an url corresponding to the given path.
+    /// The request gets archived along with the track code.
     /// The url-to-path map is taken from the config file.
+    /// If no url is found, no redirect occurs.
     [MVCPath('/($campaign)/($article)/($track)')]
     [MVCHTTPMethod([httpGET])]
     [MVCProduces('text/html', 'UTF-8')]
@@ -384,7 +377,7 @@ end;
 // Render(Route.getRoutes);
 // end;
 
-procedure TRedirectController.getStatusComponents(ctx: TWebContext);
+procedure TRedirectController.getStatus(ctx: TWebContext);
 var
   status: TJsonObject;
 begin
@@ -409,7 +402,8 @@ begin
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
-    TRedirectController.LogIfPossible(TLEVELS.INFO, tag, 'Loading the configuration.');
+    TRedirectController.LogIfPossible(TLEVELS.INFO, tag,
+      'Loading the configuration.');
     TRedirectController.Logger.Configure(ServerConfig.Logger);
     TRedirectController.Router.addRoutes(ServerConfig.routes);
     TRedirectController.Storage.Configure(ServerConfig.DbStorage);
@@ -521,11 +515,6 @@ end;
 procedure TRedirectController.SetConfigFilePath(const path: String);
 begin
   TRedirectController.ServerConfig := TServerConfig.Create(path);
-end;
-
-procedure TRedirectController.SetImagesDir(const dirName: String);
-begin
-  ImageStorage.BaseDir := dirName;
 end;
 
 // procedure TRedirectController.SetImagesDir(ctx: TWebContext);

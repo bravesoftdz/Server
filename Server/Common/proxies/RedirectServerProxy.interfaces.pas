@@ -20,83 +20,35 @@ type
   IRedirectServerProxy = interface(IInvokable)
     ['{6001900A-DB38-4251-BE9D-94CA892A8F73}']
 
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{img}')
+      ]
+    [Headers('ContentEncoding', 'UTF-16')]
+    function getImage([Param('img')] img: String): string;
+
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{campaign}/{img}')]
     [Headers('ContentEncoding', 'UTF-16')]
     function getCampaignImage([Param('campaign')] campaign: string;
       [Param('img')] img: String): string;
 
-    [RESTResource(TMVCHTTPMethodType.httpGET, '/server/ping')]
-    // [mapping(TJSONOBJECT)]
-    function serverPing: TResponse;
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{campaign}/(track)/{img}')]
+    [Headers('ContentEncoding', 'UTF-16')]
+    function getCampaignImageWithTrack([Param('campaign')] campaign: string;
+      [Param('track')] track: string; [Param('img')] img: String): string;
+
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/(campaign)/(article)')]
+    function getArticle([Param('campaign')] campaign: String; [Param('article')] article: String)
+      : TResponse;
+
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/(campaign)/(article)/(track)')]
+    function getArticleWithTrack([Param('campaign')] campaign: String;
+      [Param('article')] article: String; [Param('track')] track: String): TResponse;
+
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/server/reload')]
+    procedure reload();
 
     [RESTResource(TMVCHTTPMethodType.httpGET, '/news/server/status')]
-    function getRedirectServerStatus: TJSonObject;
+    function getServerStatus(): TJSonObject;
 
-    // [RESTResource(TMVCHTTPMethodType.httpGET, '/news/echo/{text}')]
-    // [Headers('ContentType', 'text/plain')]
-    // [Headers('Accept', 'text/plain')]
-    // function EchoText([Param('text')] aText: string): String;
-
-    { Route related commands: start }
-
-    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/routes')]
-    function getRoutes: TJSonObject;
-
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/delete')]
-    procedure DeleteRoutes([Body] ABody: String);
-
-    [RESTResource(TMVCHTTPMethodType.httpPUT, '/news/routes/add')]
-    procedure addRoutes([Body] ABody: String);
-
-    { Route related commands: end }
-
-    // [MVCPath('/images/($img)')]
-    // [MVCHTTPMethod([httpGET])]
-    // procedure getImage(ctx: TWebContext);
-    //
-    // [MVCPath('/images/($campaign)/($img)')]
-    // [MVCHTTPMethod([httpGET])]
-    // procedure getCampaignImage(ctx: TWebContext);
-    //
-    // [MVCPath('/images/($campaign)/($trackCode)/($img)')]
-    // [MVCHTTPMethod([httpGET])]
-    // procedure getCampaignImageWithTrack(ctx: TWebContext);
-    //
-    // [MVCPath('/routes/reload')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure LoadRoutes(ctx: TWebContext);
-
-    // [MVCPath('/statistics/commit')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure flushStatistics(ctx: TWebContext);
-    //
-
-    // [MVCPath('/($campaign)/($article)')]
-    // [MVCHTTPMethod([httpGET])]
-    // [MVCProduces('text/html', 'UTF-8')]
-    // procedure redirectNoTrack(ctx: TWebContext);
-    //
-    // [MVCPath('/($campaign)/($article)/($track)')]
-    // [MVCHTTPMethod([httpGET])]
-    // [MVCProduces('text/html', 'UTF-8')]
-    // procedure redirectAndTrack(ctx: TWebContext);
-
-    // [RESTResource(TMVCHTTPMethodType.httpGET, '/hello')]
-    // function HelloWorld(): string;
-    //
-    // [RESTResource(TMVCHTTPMethodType.httpGET, '/user')]
-    // function GetUser(): TAppUser;
-    //
-    // [RESTResource(TMVCHTTPMethodType.httpPOST, '/user/save')]
-    // procedure PostUser([Body] pBody: TAppUser);
-    //
-    // [RESTResource(TMVCHTTPMethodType.httpGET, '/users')]
-    // [MapperListOf(TAppUser)]
-    // function GetUsers(): TObjectList<TAppUser>;
-    //
-    // [RESTResource(TMVCHTTPMethodType.httpPOST, '/users/save')]
-    // [MapperListOf(TAppUser)]
-    // procedure PostUsers([Body] pBody: TObjectList<TAppUser>);
   end;
 
 implementation

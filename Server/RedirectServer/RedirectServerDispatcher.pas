@@ -597,7 +597,6 @@ begin
     if Length(query) > 0 then
     begin
       for item in params do
-      // for param in params.Keys do
       begin
         queryBound := StringReplace(queryBound, item.Key + '=',
           item.Key + '=' + item.Value, [rfReplaceAll]);

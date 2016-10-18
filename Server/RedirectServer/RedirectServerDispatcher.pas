@@ -31,29 +31,21 @@ type
 
     procedure SendImage(const path: String; const ctx: TWebContext);
     procedure SetConfigFilePath(const path: String);
-    procedure ArchiveAndRedirect(const campaign, article, track: String;
-      const ctx: TWebContext);
+    procedure ArchiveAndRedirect(const campaign, article, track: String; const ctx: TWebContext);
     function GetQueryMap(const data: TStrings): TDictionary<String, String>;
-    function feedQueryParams(const Base: String;
-      const params: TDictionary<String, String>): String;
+    function feedQueryParams(const Base: String; const params: TDictionary<String, String>): String;
     class procedure StartServer();
     class procedure StopServer();
     /// <summary>Load configuration from the file whose name is stored
     /// in ServerConfigPath</sumamry>
     class procedure Configure();
+    class procedure LogIfPossible(const level: TLEVELS; const tag, msg: string);
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
       var Handled: Boolean); override;
 
   public
-    class procedure LogIfPossible(const level: TLEVELS; const tag, msg: string);
-
-    // [MVCHTTPMethod([httpGET])]
-    // [MVCPath('/echo/($text)')]
-    // [MVCProduces('text/plain', 'UTF-8')]
-    // procedure Echo(ctx: TWebContext);
-
     /// Retrieve an image from the image storage
     [MVCPath('/images/($img)')]
     [MVCHTTPMethod([httpGET])]
@@ -100,95 +92,6 @@ type
     [MVCHTTPMethod([httpGET])]
     [MVCProduces('text/html', 'UTF-8')]
     procedure redirectAndTrack(ctx: TWebContext);
-
-    /// ================== Routes START ==========
-    ///
-    // [MVCPath('/routes')]
-    // [MVCHTTPMethod([httpGET])]
-    // procedure getRoutes(ctx: TWebContext);
-    //
-    // /// <summary>Delete routes encoded as a json array in the request body </summary>
-    // [MVCPath('/routes/delete')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure DeleteRoutes(ctx: TWebContext);
-    //
-    // /// <summary> Add routes passed in the body of the request.
-    // /// Routes whose keys are already present in the redirect mapping,
-    // /// are ignored. </summary>
-    // /// <return> Json object with routes that were added to the existing ones.</return>
-    // [MVCPath('/routes/add')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure addRoutes(ctx: TWebContext);
-    ///
-    /// ================== Routes END ==========
-
-    /// ================== Logger START ==========
-    ///
-    // [MVCPath('/logger/status')]
-    // [MVCHTTPMethod([httpGET])]
-    // procedure getLoggerStatus(ctx: TWebContext);
-    //
-    // /// <summary>Setter for the logger properties. The properties must be
-    // /// passed as a json object.</summary>
-    // [MVCPath('/logger/set')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure setLoggerProperty(ctx: TWebContext);
-    ///
-    /// ================== Logger END ==========
-
-    /// ================== Server START ==========
-    ///
-
-
-    // /// <summary>set the images folder
-    // /// It must be passed as a key-value pair associated with IMAGE_DIR_TOKEN
-    // /// of a json object </summary>
-    // [MVCPath('/server/set/imagesdir')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure SetImagesDir(ctx: TWebContext); overload;
-    ///
-    /// ================== Server END ==========
-
-    /// ================== Storage START ==========
-    ///
-    // [MVCPath('/storage/set')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure setStorageProperties(ctx: TWebContext);
-    ///
-    /// ================== Storage END   ==========
-
-    /// ================== Image upload START =====
-    ///
-    /// <summary>Save image corresponding to a given article of a given campaign
-    /// </summary>
-    /// <return>a string representation of the image uri after saving </return>
-    // [MVCPath('/save/image')]
-    // [MVCHTTPMethod([httpPOST])]
-    // procedure SaveCommonImage(ctx: TWebContext);
-    //
-    // /// <summary>Save image corresponding to a given campaign</summary>
-    // /// <return>a string representation of the image uri after saving </return>
-    // [MVCPath('/save/image/($campaign)')]
-    // [MVCHTTPMethod([httpPOST])]
-    // procedure SaveCampaignImage(ctx: TWebContext);
-    //
-    // /// <summary>Delete an image </summary>
-    // [MVCPath('/delete/image/($image)')]
-    // [MVCHTTPMethod([httpPOST])]
-    // procedure DeleteCommonImage(ctx: TWebContext);
-    //
-    // /// <summary>Delete an image </summary>
-    // [MVCPath('/delete/image/($campaign)/($image)')]
-    // [MVCHTTPMethod([httpPOST])]
-    // procedure DeleteCampaignImage(ctx: TWebContext);
-    ///
-    /// ================== Image upload END =======
-
-    // [MVCPath('/statistics/commit')]
-    // [MVCHTTPMethod([httpPUT])]
-    // procedure flushStatistics(ctx: TWebContext);
-    //
-
   end;
 
 implementation
@@ -207,8 +110,7 @@ var
 begin
   request := ctx.request;
   resourse := request.params['campaign'] + '/' + request.params['article'];
-  ArchiveAndRedirect(request.params['campaign'],
-    request.params['article'], '', ctx);
+  ArchiveAndRedirect(request.params['campaign'], request.params['article'], '', ctx);
 end;
 
 procedure TRedirectController.reload(ctx: TWebContext);
@@ -226,22 +128,11 @@ begin
   request := ctx.request;
   resourse := request.params['campaign'] + '/' + request.params['article'];
   track := request.params['track'];
-  ArchiveAndRedirect(request.params['campaign'], request.params['article'],
-    track, ctx);
+  ArchiveAndRedirect(request.params['campaign'], request.params['article'], track, ctx);
 end;
 
-// procedure TRedirectController.addRoutes(ctx: TWebContext);
-// var
-// mappings: TJsonObject;
-// request: TMVCWebRequest;
-// begin
-// request := ctx.request;
-// mappings := request.BodyAsJSONObject();
-// Route.addRoutes(mappings)
-// end;
-
-procedure TRedirectController.ArchiveAndRedirect(const campaign, article,
-  track: String; const ctx: TWebContext);
+procedure TRedirectController.ArchiveAndRedirect(const campaign, article, track: String;
+  const ctx: TWebContext);
 const
   tag: String = 'TAdvStatsController.ArchiveAndRedirect';
 
@@ -257,9 +148,8 @@ begin
   bareUrl := Router.getUrl(campaign, article);
 
   if (bareUrl.isEmpty) then
-    LogIfPossible(TLEVELS.INFO, tag, 'campaign: ' + campaign +
-      ', no redirect for ' + request.PathInfo + ': ip = ' +
-      ctx.request.ClientIP)
+    LogIfPossible(TLEVELS.INFO, tag, 'campaign: ' + campaign + ', no redirect for ' +
+      request.PathInfo + ': ip = ' + ctx.request.ClientIP)
   else
   begin
     ip := request.ClientIP;
@@ -290,8 +180,7 @@ end;
 
 class procedure TRedirectController.StopServer;
 begin
-  TRedirectController.Logger.logInfo('TAdvStatsController.StopServer',
-    'Stop the server');
+  TRedirectController.Logger.logInfo('TAdvStatsController.StopServer', 'Stop the server');
   TRedirectController.ImageStorage.DisposeOf;
   TRedirectController.RequestHandler := nil;
   TRedirectController.Storage.DisposeOf;
@@ -300,64 +189,12 @@ begin
 
 end;
 
-// procedure TRedirectController.DeleteCampaignImage(ctx: TWebContext);
-// var
-// path: String;
-// outcome: Boolean;
-// begin
-// path := TPath.Combine(ctx.request.params['campaign'],
-// ctx.request.params['image']);
-// DeleteImage(path);
-// end;
-
-// procedure TRedirectController.DeleteCommonImage(ctx: TWebContext);
-// begin
-// DeleteImage(ctx.request.params['image']);
-// end;
-//
-// procedure TRedirectController.DeleteImage(const path: String);
-// var
-// outcome: Boolean;
-// res: TJsonObject;
-// begin
-// outcome := ImageStorage.DeleteImage(path);
-// res := TJsonObject.Create();
-// res.AddPair(path, TJSonBool.Create(outcome));
-// Render(res);
-// end;
-
-// procedure TRedirectController.DeleteRoutes(ctx: TWebContext);
-// var
-// request: TMVCWebRequest;
-// begin
-// request := ctx.request;
-// if request.BodyAsJSONValue is TJsonArray then
-// Route.delete(request.BodyAsJSONValue as TJsonArray);
-// end;
-
 procedure TRedirectController.getImage(ctx: TWebContext);
 begin
   SendImage(ctx.request.params['img'], ctx);
 end;
 
-{ Return the logger status. If no logger is set, return a json object
-  with a single pair whose key is "logger" and its value is "none" }
-// procedure TRedirectController.getLoggerStatus(ctx: TWebContext);
-// var
-// jo: TJsonObject;
-// begin
-// if Logger = nil then
-// begin
-// jo := TJsonObject.Create;
-// jo.AddPair('logger', 'none');
-// end
-// else
-// jo := Logger.getStatus();
-// Render(jo);
-// end;
-
-function TRedirectController.GetQueryMap(const data: TStrings)
-  : TDictionary<String, String>;
+function TRedirectController.GetQueryMap(const data: TStrings): TDictionary<String, String>;
 var
   line: String;
   parts: TStringDynArray;
@@ -371,11 +208,6 @@ begin
   end;
 
 end;
-
-// procedure TRedirectController.getRoutes(ctx: TWebContext);
-// begin
-// Render(Route.getRoutes);
-// end;
 
 procedure TRedirectController.getStatus(ctx: TWebContext);
 var
@@ -402,8 +234,7 @@ begin
   ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
-    TRedirectController.LogIfPossible(TLEVELS.INFO, tag,
-      'Loading the configuration.');
+    TRedirectController.LogIfPossible(TLEVELS.INFO, tag, 'Loading the configuration.');
     TRedirectController.Logger.Configure(ServerConfig.Logger);
     TRedirectController.Router.addRoutes(ServerConfig.routes);
     TRedirectController.Storage.Configure(ServerConfig.DbStorage);
@@ -411,12 +242,10 @@ begin
     ServerConfig.DisposeOf;
   end
   else
-    LogIfPossible(TLEVELS.INFO, tag,
-      'Configuration is malformed. Ignoring it.');
+    LogIfPossible(TLEVELS.INFO, tag, 'Configuration is malformed. Ignoring it.');
 end;
 
-class procedure TRedirectController.LogIfPossible(const level: TLEVELS;
-const tag, msg: string);
+class procedure TRedirectController.LogIfPossible(const level: TLEVELS; const tag, msg: string);
 begin
   if not(TRedirectController.Logger = nil) then
     TRedirectController.Logger.log(level, tag, msg);
@@ -437,8 +266,7 @@ end;
 
 procedure TRedirectController.getCampaignImageWithTrack(ctx: TWebContext);
 var
-  campaign, imageName, trackCode, requestResource, ip, filePath,
-    userAgent: String;
+  campaign, imageName, trackCode, requestResource, ip, filePath, userAgent: String;
   request: TMVCWebRequest;
   view: TRequestView;
 begin
@@ -464,46 +292,13 @@ begin
   SendImage(filePath, ctx);
 end;
 
-procedure TRedirectController.OnBeforeAction(Context: TWebContext;
-const AActionNAme: string; var Handled: Boolean);
+procedure TRedirectController.OnBeforeAction(Context: TWebContext; const AActionNAme: string;
+var Handled: Boolean);
 begin
   // inherited;
 end;
 
-// procedure TRedirectController.SaveCampaignImage(ctx: TWebContext);
-// var
-// campaign: String;
-// begin
-// campaign := ctx.request.params['campaign'];
-// SaveImage(campaign, ctx);
-// end;
-
-// procedure TRedirectController.SaveCommonImage(ctx: TWebContext);
-// begin
-// SaveImage('', ctx);
-// end;
-
-// procedure TRedirectController.SaveImage(const dir: String;
-// const ctx: TWebContext);
-// var
-// fs: TFileStream;
-// I, numOfFiles: Integer;
-// report: TJsonObject;
-// status: Boolean;
-// path: String;
-// begin
-// numOfFiles := ctx.request.RawWebRequest.Files.Count;
-// report := TJsonObject.Create();
-// for I := 0 to numOfFiles - 1 do
-// begin
-// status := ImageStorage.saveFile(dir, ctx.request.Files[I]);
-// report.AddPair(ctx.request.Files[I].FileName, TJSonBool.Create(status))
-// end;
-// Render(report);
-// end;
-
-procedure TRedirectController.SendImage(const path: String;
-const ctx: TWebContext);
+procedure TRedirectController.SendImage(const path: String; const ctx: TWebContext);
 var
   filePath: String;
 begin
@@ -517,50 +312,13 @@ begin
   TRedirectController.ServerConfig := TServerConfig.Create(path);
 end;
 
-// procedure TRedirectController.SetImagesDir(ctx: TWebContext);
-// begin
-// SetImagesDir(ctx.request.Body);
-// end;
-
-// procedure TRedirectController.setLoggerProperty(ctx: TWebContext);
-// var
-// request: TMVCWebRequest;
-// params: TJsonObject;
-// begin
-// if Logger = nil then
-// Exit();
-// request := ctx.request;
-// params := request.BodyAsJSONObject();
-// Logger.setProperties(params);
-// end;
-
-// procedure TRedirectController.setStorageProperties(ctx: TWebContext);
-// const
-// TAG: String = 'TRedirectController.setStorageProperties';
-// var
-// params: TJsonObject;
-// begin
-// if Storage = nil then
-// begin
-// if (Logger = nil) then
-// Logger.logWarning(TAG,
-// 'Failed to configure storage properties since no storage is found');
-// Exit();
-// end;
-// params := ctx.request.BodyAsJSONObject();
-// if not(params = nil) then
-// Storage.setProperties(params);
-// end;
-
-{ Initialize the server parameters }
 class procedure TRedirectController.StartServer;
 begin
   if ParamCount >= 1 then
     TRedirectController.ServerConfigPath := paramstr(1)
   else
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-      15 OR BACKGROUND_RED);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15 OR BACKGROUND_RED);
     System.Write('Warning:');
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
     System.Writeln(' the program is called without argument hence ' +
@@ -598,8 +356,8 @@ begin
     begin
       for item in params do
       begin
-        queryBound := StringReplace(queryBound, item.Key + '=',
-          item.Key + '=' + item.Value, [rfReplaceAll]);
+        queryBound := StringReplace(queryBound, item.Key + '=', item.Key + '=' + item.Value,
+          [rfReplaceAll]);
       end;
     end;
   finally

@@ -20,8 +20,7 @@ type
   IRedirectServerProxy = interface(IInvokable)
     ['{6001900A-DB38-4251-BE9D-94CA892A8F73}']
 
-    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{img}')
-      ]
+    [RESTResource(TMVCHTTPMethodType.httpGET, '/news/images/{img}')]
     [Headers('ContentEncoding', 'UTF-16')]
     function getImage([Param('img')] img: String): string;
 

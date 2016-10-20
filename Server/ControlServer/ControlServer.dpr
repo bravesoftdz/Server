@@ -18,7 +18,8 @@ uses
   ControlServerDispatcher in 'ControlServerDispatcher.pas',
   MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule},
   Settings in 'Settings.pas',
-  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas';
+  RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas',
+  SimpleAuthentification in 'SimpleAuthentification.pas';
 
 {$R *.res}
 

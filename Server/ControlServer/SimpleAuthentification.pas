@@ -8,18 +8,15 @@ uses
   System.SysUtils,
   System.Classes,
   uTPLb_Hash,
-  uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework,
-  InterfaceLogger;
+  uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework;
 
 type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
   private
     function isFoundInFile(const fileName, key, value: String): Boolean;
-    function isAuthenticated(const fileName: String; const input: TJsonObject)
-      : Boolean; overload;
+    function isAuthenticated(const fileName: String; const input: TJsonObject): Boolean; overload;
     function encrypt(const str: String): String;
     function isAuthenticated(const fileName, input: String): Boolean; overload;
-    class var Logger: ILogger;
 
   public
   { name of the key under which json object stores authorization info }
@@ -36,8 +33,7 @@ type
   const
     AUTH_TOKEN_PASSWORD = 'password';
 
-    function isAuthenticated(const fileName: String; const ctx: TWebContext)
-      : Boolean; overload;
+    function isAuthenticated(const fileName: String; const ctx: TWebContext): Boolean; overload;
     function isValidInput(const input: TJsonObject): Boolean;
     function isValidLoginData(const input: TJsonObject): Boolean;
     function createHash(const key, salt: String): String;
@@ -45,7 +41,7 @@ type
 
 implementation
 
-uses uTPLb_Constants, System.Hash, System.IOUtils, Logger,
+uses uTPLb_Constants, System.Hash, System.IOUtils,
   System.RegularExpressions;
 
 { TSimpleAuthentification }
@@ -95,8 +91,7 @@ begin
 
 end;
 
-function TSimpleAuthentification.isAuthenticated(const fileName,
-  input: String): Boolean;
+function TSimpleAuthentification.isAuthenticated(const fileName, input: String): Boolean;
 var
   constructJSON: TJsonObject;
 begin
@@ -113,8 +108,7 @@ end;
 { Returns true iff a file with given name contains a line with two
   given strings: key and value
 }
-function TSimpleAuthentification.isFoundInFile(const fileName, key,
-  value: String): Boolean;
+function TSimpleAuthentification.isFoundInFile(const fileName, key, value: String): Boolean;
 var
   lines: TStringList;
   Size, i: Integer;
@@ -126,22 +120,8 @@ begin
   result := false;
   lines := TStringList.Create();
   if FileExists(fileName) then
-  begin
-    try
-      lines.LoadFromFile(fileName);
-    except
-      on e: Exception do
-      begin
-        Logger.logException('TSimpleAuthentification.isFoundInFile', e.Message);
-        raise;
-      end;
-    end;
-  end
+    lines.LoadFromFile(fileName)
   else
-  begin
-    Logger.logWarning('TSimpleAuthentification.isFoundInFile',
-      'file ' + fileName + ' does not exist.');
-  end;
   Size := lines.Count;
   for i := 0 to Size - 1 do
   begin
@@ -152,8 +132,7 @@ begin
     // split the string on inner white spaces
     RegexObj := TRegEx.Create('(?<=[^\s])\s+(?=[^\s])');
     items := RegexObj.Split(trimmed, 0);
-    if (Length(items) = 2) and (Trim(items[0]) = key) and
-      (Trim(items[1]) = value) then
+    if (Length(items) = 2) and (Trim(items[0]) = key) and (Trim(items[1]) = value) then
     begin
       result := True;
       break;
@@ -168,21 +147,18 @@ end;
   3. one key is 'auth'
   4. the other key is 'paths'
   Otherwise, false is returned. }
-function TSimpleAuthentification.isValidInput(const input: TJsonObject)
-  : Boolean;
+function TSimpleAuthentification.isValidInput(const input: TJsonObject): Boolean;
 begin
   result := false;
   if (not(input = nil)) and (input.Count = 2) then
   begin
-    result := (not(input.getValue(AUTH_TOKEN) = nil) and
-      (not(input.getValue(PATH_TOKEN) = nil)));
+    result := (not(input.getValue(AUTH_TOKEN) = nil) and (not(input.getValue(PATH_TOKEN) = nil)));
   end;
 end;
 
 { Returns true if the argument contains a key "auth"
 }
-function TSimpleAuthentification.isValidLoginData
-  (const input: TJsonObject): Boolean;
+function TSimpleAuthentification.isValidLoginData(const input: TJsonObject): Boolean;
 begin
   result := false;
   if (not(input = nil)) then
@@ -206,6 +182,5 @@ begin
   else
     result := isAuthenticated(fileName, ctx.request.Body);
 end;
-
 
 end.

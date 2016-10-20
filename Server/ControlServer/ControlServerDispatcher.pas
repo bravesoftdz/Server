@@ -50,16 +50,16 @@ uses
 
 procedure TControlServerController.getRoutes(ctx: TWebContext);
 begin
-  Render(WebResource.getRoutes);
+  // Render(WebResource.getRoutes);
 end;
 
 procedure TControlServerController.getStatus(ctx: TWebContext);
 begin
-  Render(WebResource.getRedirectServerStatus());
+  Render(WebResource.getServerStatus());
 end;
 
-procedure TControlServerController.OnBeforeAction(Context: TWebContext;
-  const AActionNAme: string; var Handled: Boolean);
+procedure TControlServerController.OnBeforeAction(Context: TWebContext; const AActionNAme: string;
+  var Handled: Boolean);
 begin
   // inherited;
 
@@ -70,39 +70,36 @@ begin
   Render('ok');
 end;
 
-
 procedure TControlServerController.testConnection(ctx: TWebContext);
 var
   resp: TResponse;
 begin
-  try
-    resp := WebResource.serverPing;
-    try
-      if not(resp = nil) then
-        Render('Received responce: ' + resp.status)
-      else
-        Render('Null responce');
-    except
-      on E: EIdSocketError do
-        Render('No connection');
-    end;
-  finally
-    resp := nil
-  end;
+  // try
+  // resp := WebResource.serverPing;
+  // try
+  // if not(resp = nil) then
+  // Render('Received responce: ' + resp.status)
+  // else
+  // Render('Null responce');
+  // except
+  // on E: EIdSocketError do
+  // Render('No connection');
+  // end;
+  // finally
+  // resp := nil
+  // end;
 end;
 
 initialization
 
 TControlServerController.Settings := TSettings.Create('.\ControlServer.conf');
-TControlServerController.RESTAdapter :=
-  TRESTAdapter<IRedirectServerProxy>.Create;
-TControlServerController.WebResource :=
-  TControlServerController.RESTAdapter.Build
+TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
   (TControlServerController.Settings.redirectServerUrl,
   TControlServerController.Settings.redirectServerPort);
 
 finalization
 
-TControlServerController.Settings.DisposeOf;
+// TControlServerController.Settings.DisposeOf;
 
 end.

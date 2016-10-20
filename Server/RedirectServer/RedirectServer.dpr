@@ -20,7 +20,6 @@ uses
   Route in 'Route.pas',
   InterfaceRoute in 'InterfaceRoute.pas',
   Storage in 'Storage.pas' {DMStorage: TDataModule},
-  InterfaceAuthentication in 'InterfaceAuthentication.pas',
   InterfaceLogger in 'InterfaceLogger.pas',
   MessageCodes in 'MessageCodes.pas',
   Settings in 'Settings.pas' {$R *.res},

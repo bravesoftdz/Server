@@ -39,6 +39,8 @@ type
     /// <summary>Load configuration from the file whose name is stored
     /// in ServerConfigPath</sumamry>
     class procedure Configure();
+    /// <summary>Log the message if the logger is available. Otherwise, ignore
+    /// the message.</summary>
     class procedure LogIfPossible(const level: TLEVELS; const tag, msg: string);
 
   protected
@@ -97,8 +99,8 @@ type
 implementation
 
 uses System.IOUtils, System.SysUtils, System.StrUtils,
-  FireDAC.Comp.Client, Vcl.Forms, InterfaceAuthentication, System.DateUtils,
-  RequestClick, RequestView, SimpleAuthentification, MessageCodes,
+  FireDAC.Comp.Client, Vcl.Forms, System.DateUtils,
+  RequestClick, RequestView, MessageCodes,
   System.RegularExpressions, IdURI, System.Types, Web.HTTPApp, Winapi.Windows;
 
 { TRedirectController }
@@ -236,13 +238,14 @@ begin
   begin
     TRedirectController.LogIfPossible(TLEVELS.INFO, tag, 'Loading the configuration.');
     TRedirectController.Logger.Configure(ServerConfig.Logger);
-    TRedirectController.Router.addRoutes(ServerConfig.routes);
+    TRedirectController.Router.addRoutes(ServerConfig.Routes);
     TRedirectController.Storage.Configure(ServerConfig.DbStorage);
     TRedirectController.ImageStorage.Configure(ServerConfig.ImageStorage);
     ServerConfig.DisposeOf;
   end
   else
-    LogIfPossible(TLEVELS.INFO, tag, 'Configuration is malformed. Ignoring it.');
+    LogIfPossible(TLEVELS.INFO, tag, 'The content of the configuration file \"' +
+      TRedirectController.ServerConfigPath + '\" is ignored.');
 end;
 
 class procedure TRedirectController.LogIfPossible(const level: TLEVELS; const tag, msg: string);

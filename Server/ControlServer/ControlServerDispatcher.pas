@@ -6,16 +6,18 @@ uses
   Controller.Base,
   MVCFramework,
   System.Classes, Settings, MVCFramework.RESTAdapter,
-  RedirectServerProxy.interfaces;
+  RedirectServerProxy.interfaces, InterfaceAuthentication;
 
 type
 
   [MVCPath('/control')]
   TControlServerController = class abstract(TBaseController)
-  private
+  private const
+    class AUTHENTICATED_TOKEN = 'authenticated';
     class var Settings: TSettings;
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var WebResource: IRedirectServerProxy;
+    class var Authentication: IAuthentication;
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -36,6 +38,10 @@ type
     [MVCPath('/routes')]
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
+
+    [MVCPath('/login')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure login(ctx: TWebContext);
   end;
 
 implementation
@@ -44,7 +50,8 @@ uses
   FireDAC.Comp.Client,
   Vcl.Forms,
   IdURI,
-  System.Types, System.SysUtils, IdStack;
+  System.Types, System.SysUtils, IdStack, SimpleAuthentification,
+  InterfaceAuthData, System.JSON, SimpleAuthData;
 
 { TControlServerController }
 
@@ -55,7 +62,21 @@ end;
 
 procedure TControlServerController.getStatus(ctx: TWebContext);
 begin
+
   Render(WebResource.getServerStatus());
+end;
+
+procedure TControlServerController.login(ctx: TWebContext);
+var
+  AuthData: IAuthData;
+  data: TJSonObject;
+  Auth: IAuthentication;
+begin
+  data := ctx.Request.BodyAsJSONObject;
+  AuthData := TSimpleAuthData.Create(data.getValue['username'].value,
+    data.getValue['password'].value);
+  Auth := TSimpleAuthentification.Create();
+  Session['authenticated'] := Auth.isValidLoginData(AuthData);
 end;
 
 procedure TControlServerController.OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -94,12 +115,14 @@ initialization
 
 TControlServerController.Settings := TSettings.Create('.\ControlServer.conf');
 TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+TControlServerController.Authentication := TSimpleAuthentification.Create();
 TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
   (TControlServerController.Settings.redirectServerUrl,
   TControlServerController.Settings.redirectServerPort);
 
 finalization
 
-// TControlServerController.Settings.DisposeOf;
+TControlServerController.Settings.DisposeOf;
+TControlServerController.Authentication := nil;
 
 end.

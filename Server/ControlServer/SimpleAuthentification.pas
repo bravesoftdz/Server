@@ -8,11 +8,13 @@ uses
   System.SysUtils,
   System.Classes,
   uTPLb_Hash,
-  uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework;
+  uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework,
+  InterfaceAuthData, System.Generics.Collections;
 
 type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
   private
+    property FCore: TDictionary<String, String>;
     function isFoundInFile(const fileName, key, value: String): Boolean;
     function isAuthenticated(const fileName: String; const input: TJsonObject): Boolean; overload;
     function encrypt(const str: String): String;
@@ -35,7 +37,9 @@ type
 
     function isAuthenticated(const fileName: String; const ctx: TWebContext): Boolean; overload;
     function isValidInput(const input: TJsonObject): Boolean;
-    function isValidLoginData(const input: TJsonObject): Boolean;
+    /// <summary> Return true if the argument contains valid login credentials,
+    /// otherwise return false</summary>
+    function isValidLoginData(const data: IAuthData): Boolean;
     function createHash(const key, salt: String): String;
   end;
 
@@ -122,7 +126,7 @@ begin
   if FileExists(fileName) then
     lines.LoadFromFile(fileName)
   else
-  Size := lines.Count;
+    Size := lines.Count;
   for i := 0 to Size - 1 do
   begin
     trimmed := Trim(lines[i]);
@@ -156,15 +160,13 @@ begin
   end;
 end;
 
-{ Returns true if the argument contains a key "auth"
-}
-function TSimpleAuthentification.isValidLoginData(const input: TJsonObject): Boolean;
+function TSimpleAuthentification.isValidLoginData(const data: IAuthData): Boolean;
+var
+  username: String;
+
 begin
-  result := false;
-  if (not(input = nil)) then
-  begin
-    result := not(input.getValue(AUTH_TOKEN) = nil);
-  end;
+  username := data.getUsername();
+  result := FCore.containsKey(username) AND FCore[username] = data.getPassword();
 end;
 
 { Returns true if the WebContext object contains information

@@ -13,12 +13,11 @@ var
 
 begin
   cipher := TEncrypt.Create();
-
   try
     if ParamCount >= 1 then
     begin
       input := paramstr(1);
-      Writeln(input + ' -> ' + cipher.Encrypt(input));
+      Writeln(input + ' -> "' + cipher.Encrypt(input) + '"');
     end
     else
       Writeln('No input string is given.');

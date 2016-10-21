@@ -7,12 +7,12 @@ type
   private
     FRedirectServerUrl: String;
     FRedirectServerPort: Integer;
+    FAuth: String;
     fileName: String;
   public
-    property redirectServerUrl: String read FRedirectServerUrl
-      write FRedirectServerUrl;
-    property redirectServerPort: Integer read FRedirectServerPort
-      write FRedirectServerPort;
+    property redirectServerUrl: String read FRedirectServerUrl write FRedirectServerUrl;
+    property redirectServerPort: Integer read FRedirectServerPort write FRedirectServerPort;
+    property auth: String read FAuth write FAuth;
     constructor Create(const fileName: String);
     procedure load();
   end;
@@ -32,8 +32,7 @@ begin
   end
   else
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-      15 OR BACKGROUND_RED);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15 OR BACKGROUND_RED);
     System.Write('Warning:');
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
     Write(' Configuration file ');

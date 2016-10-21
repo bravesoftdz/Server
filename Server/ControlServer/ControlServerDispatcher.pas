@@ -12,12 +12,15 @@ type
 
   [MVCPath('/control')]
   TControlServerController = class abstract(TBaseController)
-  private const
-    class AUTHENTICATED_TOKEN = 'authenticated';
+  private
+
     class var Settings: TSettings;
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var WebResource: IRedirectServerProxy;
     class var Authentication: IAuthentication;
+
+  const
+    AUTHENTICATED_TOKEN: String = 'authenticated';
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -76,7 +79,7 @@ begin
   AuthData := TSimpleAuthData.Create(data.getValue['username'].value,
     data.getValue['password'].value);
   Auth := TSimpleAuthentification.Create();
-  Session['authenticated'] := Auth.isValidLoginData(AuthData);
+  Session[AUTHENTICATED_TOKEN] := Auth.isValidLoginData(AuthData);
 end;
 
 procedure TControlServerController.OnBeforeAction(Context: TWebContext; const AActionNAme: string;

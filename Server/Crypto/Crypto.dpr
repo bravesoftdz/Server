@@ -6,18 +6,18 @@ program Crypto;
 uses
   System.SysUtils,
   Encrypt in 'Encrypt.pas';
-
 var
   cipher: TEncrypt;
   input: String;
-
+  saltLength: Integer;
 begin
   cipher := TEncrypt.Create();
   try
-    if ParamCount >= 1 then
+    if ParamCount >= 2 then
     begin
       input := paramstr(1);
-      Writeln(input + ' -> "' + cipher.Encrypt(input) + '"');
+      saltLength := StrToInt(paramstr(2));
+      Writeln(input + ' -> "' + cipher.Encrypt(input, saltLength) + '"');
     end
     else
       Writeln('No input string is given.');

@@ -19,7 +19,9 @@ uses
   MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule},
   Settings in 'Settings.pas',
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas',
-  SimpleAuthentification in 'SimpleAuthentification.pas';
+  SimpleAuthentification in 'SimpleAuthentification.pas',
+  InterfaceAuthData in 'InterfaceAuthData.pas',
+  SimpleAuthData in 'SimpleAuthData.pas';
 
 {$R *.res}
 

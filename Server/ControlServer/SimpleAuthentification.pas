@@ -14,7 +14,7 @@ uses
 type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
   private
-    property FCore: TDictionary<String, String>;
+    var FCore: TDictionary<String, String>;
     function isFoundInFile(const fileName, key, value: String): Boolean;
     function isAuthenticated(const fileName: String; const input: TJsonObject): Boolean; overload;
     function encrypt(const str: String): String;

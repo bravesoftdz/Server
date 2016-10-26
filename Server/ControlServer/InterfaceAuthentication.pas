@@ -11,7 +11,7 @@ type
     { Controls whether the context contains data that are considered to be valid
       with respect to a  file with given name }
     function isAuthenticated(const fileName: String; const ctx: TWebContext): Boolean; overload;
-    function isValidInput(const input: IAuthData): Boolean;
+//    function isValidInput(const input: IAuthData): Boolean;
     function isValidLoginData(const data: IAuthData): Boolean;
     function encrypt(const str: String): String;
   end;

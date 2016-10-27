@@ -6,10 +6,13 @@ program Crypto;
 uses
   System.SysUtils,
   Encrypt in 'Encrypt.pas';
+
 var
   cipher: TEncrypt;
+  encryptData: TEncryptData;
   input: String;
   saltLength: Integer;
+
 begin
   cipher := TEncrypt.Create();
   try
@@ -17,7 +20,11 @@ begin
     begin
       input := paramstr(1);
       saltLength := StrToInt(paramstr(2));
-      Writeln(input + ' -> "' + cipher.Encrypt(input, saltLength) + '"');
+      encryptData := cipher.Encrypt(input, saltLength);
+      Writeln(input);
+      Writeln('salt -> "' + encryptData.salt + '"');
+      Writeln('hash -> "' + encryptData.hash + '"');
+      encryptData.DisposeOf;
     end
     else
       Writeln('No input string is given.');

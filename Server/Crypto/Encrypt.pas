@@ -6,6 +6,17 @@ uses
   System.Hash, System.StrUtils, System.Math;
 
 type
+  TEncryptData = class
+  private
+    FSalt: String;
+    FHash: String;
+  public
+    property salt: String read FSalt;
+    property Hash: String read FHash;
+    constructor Create(const salt, Hash: String);
+  end;
+
+type
   TEncrypt = class
   private
     /// <summary>Generate a random string of given length. Assume that the argument
@@ -14,7 +25,9 @@ type
   public
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
-    function Encrypt(const msg: String; const saltLength: Integer): String;
+    function Encrypt(const msg: String; const saltLength: Integer): TEncryptData;
+    /// <summary>Generate hash of a password with given salt.</summary>
+    function generateHash(const password, salt: String): String;
 
   end;
 
@@ -25,16 +38,24 @@ uses
 
 { TEncrypt }
 
-function TEncrypt.Encrypt(const msg: String; const saltLength: Integer): String;
+function TEncrypt.Encrypt(const msg: String; const saltLength: Integer): TEncryptData;
 var
   h2: THashSHA2;
   salt: String;
 begin
   salt := randomString(saltLength);
-  System.Writeln('salt:  ' + salt);
   h2 := THashSHA2.Create(SHA256);
   h2.Update(salt + msg);
-  result := h2.HashAsString;
+  result := TEncryptData.Create(salt, generateHash(msg, salt));
+end;
+
+function TEncrypt.generateHash(const password, salt: String): String;
+var
+  h2: THashSHA2;
+begin
+  h2 := THashSHA2.Create(SHA256);
+  h2.Update(salt + password);
+  Result := h2.HashAsString;
 end;
 
 function TEncrypt.randomString(const len: Integer): String;
@@ -45,13 +66,21 @@ var
 begin
   result := '';
   size := length(pool);
-  rnd := RandomRange(1, size);
-  for counter := 0 to len do
+  Writeln('size: ' + inttostr(size));
+  for counter := 1 to len do
   begin
-    rnd := RandomRange(1, size);
     Randomize;
-    result := result + pool[RandomRange(1, size)];
+    rnd := RandomRange(0, size) + 1;
+    result := result + pool[rnd];
   end;
+end;
+
+{ TEncryptData }
+
+constructor TEncryptData.Create(const salt, Hash: String);
+begin
+  FSalt := salt;
+  FHash := Hash;
 end;
 
 end.

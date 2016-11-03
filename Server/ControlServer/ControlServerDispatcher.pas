@@ -6,7 +6,7 @@ uses
   Controller.Base,
   MVCFramework,
   System.Classes, Settings, MVCFramework.RESTAdapter,
-  RedirectServerProxy.interfaces, InterfaceAuthentication;
+  RedirectServerProxy.interfaces, InterfaceAuthentication, InterfaceAuthData;
 
 type
 
@@ -25,6 +25,9 @@ type
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
       var Handled: Boolean); override;
+
+    /// <summary>Mark the user with given credetials as authorized</summary>
+    procedure authorize(authData: IAuthData);
   public
     [MVCPath('/connect')]
     [MVCHTTPMethod([httpGET])]
@@ -42,9 +45,18 @@ type
     [MVCHTTPMethod([httpGET])]
     procedure getRoutes(ctx: TWebContext);
 
+    /// <summary>Perform a log in. The authentication parameters must be provided
+    /// as a json object with two keys: "username" and "password".
+    /// Value corresponding to the key "password" is not a password, but its
+    /// hash obtained from the password by applying a cryptographic algorithm.</summary>
     [MVCPath('/login')]
     [MVCHTTPMethod([httpPOST])]
     procedure login(ctx: TWebContext);
+
+    /// <summary>Perform a log out.</summary>
+    [MVCPath('/logout')]
+    [MVCHTTPMethod([httpPOST])]
+    procedure logout(ctx: TWebContext);
   end;
 
 implementation
@@ -53,10 +65,14 @@ uses
   FireDAC.Comp.Client,
   Vcl.Forms,
   IdURI,
-  System.Types, System.SysUtils, IdStack, SimpleAuthentification,
-  InterfaceAuthData, System.JSON, SimpleAuthData;
+  System.Types, System.SysUtils, IdStack, SimpleAuthentification, System.JSON, SimpleAuthData;
 
 { TControlServerController }
+
+procedure TControlServerController.authorize(authData: IAuthData);
+begin
+  /// TODO
+end;
 
 procedure TControlServerController.getRoutes(ctx: TWebContext);
 begin
@@ -71,15 +87,21 @@ end;
 
 procedure TControlServerController.login(ctx: TWebContext);
 var
-  AuthData: IAuthData;
+  authData: IAuthData;
   data: TJSonObject;
   Auth: IAuthentication;
 begin
   data := ctx.Request.BodyAsJSONObject;
-  AuthData := TSimpleAuthData.Create(data.getValue['username'].value,
-    data.getValue['password'].value);
-  Auth := TSimpleAuthentification.Create();
-  Session[AUTHENTICATED_TOKEN] := Auth.isValidLoginData(AuthData);
+  authData := TSimpleAuthData.Create(data.getValue('username').value,
+    data.getValue('password').value);
+  if TControlServerController.Authentication.isValidLoginData(authData) then
+    authorize(authData);
+  authData := nil;
+end;
+
+procedure TControlServerController.logout(ctx: TWebContext);
+begin
+
 end;
 
 procedure TControlServerController.OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -118,7 +140,7 @@ initialization
 
 TControlServerController.Settings := TSettings.Create('.\ControlServer.conf');
 TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-TControlServerController.Authentication := TSimpleAuthentification.Create();
+TControlServerController.Authentication := TSimpleAuthentification.Create('authentications.txt');
 TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
   (TControlServerController.Settings.redirectServerUrl,
   TControlServerController.Settings.redirectServerPort);

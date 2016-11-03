@@ -30,8 +30,7 @@ type
     [MapperItemsClassType(TRouteMapper)]
     property Routes: TObjectList<TRouteMapper> read FRoutes write FRoutes;
     property dbStorage: TStorageConfig read FDbStorage write FDbStorage;
-    property ImageStorage: TImageStorageConfig read FImageStorage
-      write FImageStorage;
+    property ImageStorage: TImageStorageConfig read FImageStorage write FImageStorage;
     property requestHandler: String read FRequestHandler write FRequestHandler;
     constructor Create(const fileName: String);
     destructor Destroy; override;
@@ -49,12 +48,14 @@ begin
     FRoutes := TObjectList<TRouteMapper>.Create();
     FImageStorage := TImageStorageConfig.Create();
     FDbStorage := TStorageConfig.Create();
-    LoadFromJFile(fileName)
+    LoadFromJFile(fileName);
+
+    System.Writeln('routes: ' + inttostr(FRoutes.Count));
+
   end
   else
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-      15 OR BACKGROUND_RED);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15 OR BACKGROUND_RED);
     System.Write('Warning:');
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
     System.Write(' Configuration file ');

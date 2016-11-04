@@ -15,9 +15,13 @@ type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
   private
     FUsers: TObjectList<TAuthData>;
+    /// <summary>Convert given list of authorisation data into a dictionary whose
+    /// keys are the authorisation login names. Assume that the list contains no
+    /// pair of objects with equal login names. </summary>
+    function groupByLogin(const items: TObjectList<TAuthData>): TDictionary<String, TAuthData>;
 
   var
-    FCore: TDictionary<String, String>;
+    FCore: TDictionary<String, TAuthData>;
     function isFoundInFile(const fileName, key, value: String): Boolean;
     function encrypt(const str: String): String;
 
@@ -40,10 +44,10 @@ type
     property users: TObjectList<TAuthData> read FUsers write FUsers;
     /// <summary> Return true if the argument contains valid login credentials,
     /// otherwise return false</summary>
-    function isValidLoginData(const authData: ILoginData): Boolean;
+    function isValidLoginData(const AuthData: ILoginData): Boolean;
     /// <summary> Constructor.</summary>
     /// <param name="path">Location of a file that contains login info of all
-    /// authorized users</param>
+    /// authorized users. Assume the file exists.</param>
     constructor Create(const path: String);
   end;
 
@@ -57,11 +61,19 @@ uses uTPLb_Constants, System.hash, System.IOUtils,
 constructor TSimpleAuthentification.Create(const path: String);
 begin
   FUsers := TObjectList<TAuthData>.Create();
-  if TFile.Exists(path, False) then
-  begin
-    LoadFromJFile(path)
+  if not(TFile.Exists(path, False)) then
+    raise Exception.Create('File "' + path + '" with authentication data is not found');
+  LoadFromJFile(path);
+  try
+    FCore := groupByLogin(users);
+  except
+    on e: Exception do
+    begin
+      FUsers.Clear;
+      FUsers.DisposeOf;
+      raise Exception.Create('Failed to group by login name: ' + e.Message);
+    end;
   end;
-
 end;
 
 { Encrypts a string }
@@ -73,6 +85,25 @@ begin
   h2 := THashSHA2.Create(SHA256);
   h2.Update(str);
   result := h2.HashAsString;
+end;
+
+function TSimpleAuthentification.groupByLogin(const items: TObjectList<TAuthData>)
+  : TDictionary<String, TAuthData>;
+var
+  item: TAuthData;
+begin
+  result := TDictionary<String, TAuthData>.Create();
+  for item in items do
+  begin
+    if result.ContainsKey(item.login) then
+    begin
+      result.Clear;
+      result.DisposeOf;
+      raise Exception.Create('Duplicate login name: ' + item.login)
+    end
+    else
+      result.Add(item.login, item);
+  end
 end;
 
 { Returns true iff a file with given name contains a line with two
@@ -111,13 +142,14 @@ begin
   lines.DisposeOf;
 end;
 
-function TSimpleAuthentification.isValidLoginData(const authData: ILoginData): Boolean;
+function TSimpleAuthentification.isValidLoginData(const AuthData: ILoginData): Boolean;
 var
   username: String;
 
 begin
-  username := authData.getUsername();
-  result := FCore.containsKey(username) AND (FCore[username] = authData.getPassword());
+  username := AuthData.getUsername();
+  /// stub
+  result := True;
 end;
 
 end.

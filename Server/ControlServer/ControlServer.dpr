@@ -19,7 +19,7 @@ uses
   MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule},
   Settings in 'Settings.pas',
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas',
-  SimpleAuthentification in 'SimpleAuthentification.pas' {/ InterfaceLoginData in 'InterfaceLoginData.pas',},
+  SimpleAuthentification in 'SimpleAuthentification.pas',
   InterfaceLoginData in 'InterfaceLoginData.pas',
   LoginData in 'LoginData.pas' {$R *.res},
   AuthData in 'AuthData.pas';

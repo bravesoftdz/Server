@@ -21,6 +21,14 @@ type
 
   const
     AUTHENTICATED_TOKEN: String = 'authenticated';
+    /// <summary>Configure the server</summary>
+    /// <param name="ServerConfigFile">path to the server config file.
+    /// Assume that it exists.</param>
+    /// <param name="UserAuthFile">path to the file containing authorization data.
+    /// Assume that it exists.</param>
+    class procedure Configure(const ServerConfigFile, UserAuthFile: String);
+    /// <summary>Stop the server</summary>
+    class procedure Stop();
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -74,6 +82,25 @@ begin
   /// TODO
 end;
 
+class procedure TControlServerController.Configure(const ServerConfigFile, UserAuthFile: String);
+begin
+  try
+    TControlServerController.Settings := TSettings.Create(ServerConfigFile);
+    TControlServerController.Authentication := TSimpleAuthentification.Create(UserAuthFile);
+    TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+    TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
+      (TControlServerController.Settings.redirectServerUrl,
+      TControlServerController.Settings.redirectServerPort);
+  except
+    on e: Exception do
+    begin
+      System.Writeln('Error: ' + e.Message);
+      Exit();
+    end;
+  end;
+
+end;
+
 procedure TControlServerController.getRoutes(ctx: TWebContext);
 begin
   // Render(WebResource.getRoutes);
@@ -115,6 +142,17 @@ begin
   Render('ok');
 end;
 
+class procedure TControlServerController.Stop;
+begin
+  if Assigned(TControlServerController.Settings) then
+    TControlServerController.Settings.DisposeOf;
+  if Assigned(TControlServerController.RESTAdapter) then
+    TControlServerController.RESTAdapter.DisposeOf;
+
+  TControlServerController.Authentication := nil;
+  TControlServerController.WebResource := nil;
+end;
+
 procedure TControlServerController.testConnection(ctx: TWebContext);
 var
   resp: TResponse;
@@ -137,16 +175,10 @@ end;
 
 initialization
 
-TControlServerController.Settings := TSettings.Create('.\ControlServer.conf');
-TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-TControlServerController.Authentication := TSimpleAuthentification.Create('authentications.txt');
-TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
-  (TControlServerController.Settings.redirectServerUrl,
-  TControlServerController.Settings.redirectServerPort);
+TControlServerController.Configure('.\ControlServer.conf', 'authentications.txt');
 
 finalization
 
-TControlServerController.Settings.DisposeOf;
-TControlServerController.Authentication := nil;
+TControlServerController.Stop();
 
 end.

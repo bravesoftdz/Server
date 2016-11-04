@@ -6,7 +6,7 @@ uses
   Controller.Base,
   MVCFramework,
   System.Classes, Settings, MVCFramework.RESTAdapter,
-  RedirectServerProxy.interfaces, InterfaceAuthentication, InterfaceAuthData;
+  RedirectServerProxy.interfaces, InterfaceAuthentication, InterfaceLoginData;
 
 type
 
@@ -27,7 +27,7 @@ type
       var Handled: Boolean); override;
 
     /// <summary>Mark the user with given credetials as authorized</summary>
-    procedure authorize(authData: IAuthData);
+    procedure authorize(authData: ILoginData);
   public
     [MVCPath('/connect')]
     [MVCHTTPMethod([httpGET])]
@@ -65,11 +65,11 @@ uses
   FireDAC.Comp.Client,
   Vcl.Forms,
   IdURI,
-  System.Types, System.SysUtils, IdStack, SimpleAuthentification, System.JSON, SimpleAuthData;
+  System.Types, System.SysUtils, IdStack, SimpleAuthentification, System.JSON, LoginData;
 
 { TControlServerController }
 
-procedure TControlServerController.authorize(authData: IAuthData);
+procedure TControlServerController.authorize(authData: ILoginData);
 begin
   /// TODO
 end;
@@ -87,16 +87,15 @@ end;
 
 procedure TControlServerController.login(ctx: TWebContext);
 var
-  authData: IAuthData;
+  LoginData: ILoginData;
   data: TJSonObject;
   Auth: IAuthentication;
 begin
   data := ctx.Request.BodyAsJSONObject;
-  authData := TSimpleAuthData.Create(data.getValue('username').value,
-    data.getValue('password').value);
-  if TControlServerController.Authentication.isValidLoginData(authData) then
-    authorize(authData);
-  authData := nil;
+  LoginData := TLoginData.Create(data.getValue('username').value, data.getValue('password').value);
+  if TControlServerController.Authentication.isValidLoginData(LoginData) then
+    authorize(LoginData);
+  LoginData := nil;
 end;
 
 procedure TControlServerController.logout(ctx: TWebContext);

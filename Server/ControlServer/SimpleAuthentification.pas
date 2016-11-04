@@ -9,21 +9,7 @@ uses
   System.Classes,
   uTPLb_Hash,
   uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework,
-  InterfaceAuthData, System.Generics.Collections, rttiObjectsMappers;
-
-type
-
-  [MapperJSONNaming(JSONNameLowerCase)]
-  TAuthData = class
-  private
-    FHash: String;
-    FSalt: String;
-    FLogin: String;
-  published
-    property login: String read FLogin write FLogin;
-    property salt: String read FSalt write FSalt;
-    property hash: String read FHash write FHash;
-  end;
+  InterfaceLoginData, System.Generics.Collections, rttiObjectsMappers, AuthData;
 
 type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
@@ -54,7 +40,7 @@ type
     property users: TObjectList<TAuthData> read FUsers write FUsers;
     /// <summary> Return true if the argument contains valid login credentials,
     /// otherwise return false</summary>
-    function isValidLoginData(const authData: IAuthData): Boolean;
+    function isValidLoginData(const authData: ILoginData): Boolean;
     /// <summary> Constructor.</summary>
     /// <param name="path">Location of a file that contains login info of all
     /// authorized users</param>
@@ -75,7 +61,7 @@ begin
   begin
     LoadFromJFile(path)
   end;
-  System.Writeln('users: ' + inttostr(FUsers.Count));
+
 end;
 
 { Encrypts a string }
@@ -125,7 +111,7 @@ begin
   lines.DisposeOf;
 end;
 
-function TSimpleAuthentification.isValidLoginData(const authData: IAuthData): Boolean;
+function TSimpleAuthentification.isValidLoginData(const authData: ILoginData): Boolean;
 var
   username: String;
 

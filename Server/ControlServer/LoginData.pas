@@ -1,12 +1,12 @@
-unit SimpleAuthData;
+unit LoginData;
 
 interface
 
 uses
-  InterfaceAuthData;
+  InterfaceLoginData;
 
 type
-  TSimpleAuthData = class(TInterfacedObject, IAuthData)
+  TLoginData = class(TInterfacedObject, ILoginData)
   private
     username: String;
     password: String;
@@ -21,18 +21,18 @@ implementation
 
 { TSimpleAuthData }
 
-constructor TSimpleAuthData.Create(const username, password: String);
+constructor TLoginData.Create(const username, password: String);
 begin
   Self.username := username;
   Self.password := password;
 end;
 
-function TSimpleAuthData.getPassword: String;
+function TLoginData.getPassword: String;
 begin
   Result := password;
 end;
 
-function TSimpleAuthData.getUsername: String;
+function TLoginData.getUsername: String;
 begin
   Result := username;
 end;

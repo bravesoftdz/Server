@@ -119,7 +119,7 @@ var
   Auth: IAuthentication;
 begin
   data := ctx.Request.BodyAsJSONObject;
-  LoginData := TLoginData.Create(data.getValue('username').value, data.getValue('password').value);
+  LoginData := TLoginData.Create(data);
   if TControlServerController.Authentication.isValidLoginData(LoginData) then
     authorize(LoginData);
   LoginData := nil;

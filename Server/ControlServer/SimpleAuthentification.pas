@@ -9,22 +9,18 @@ uses
   System.Classes,
   uTPLb_Hash,
   uTPLb_BaseNonVisualComponent, uTPLb_CryptographicLibrary, MVCFramework,
-  InterfaceLoginData, System.Generics.Collections, rttiObjectsMappers, AuthData;
+  InterfaceLoginData, System.Generics.Collections, rttiObjectsMappers, AuthData, Encrypt;
 
 type
   TSimpleAuthentification = class(TInterfacedObject, IAuthentication)
   private
     FUsers: TObjectList<TAuthData>;
+    FUsersIndexed: TDictionary<String, TAuthData>;
+    FEncryptor: TEncrypt;
     /// <summary>Convert given list of authorisation data into a dictionary whose
     /// keys are the authorisation login names. Assume that the list contains no
     /// pair of objects with equal login names. </summary>
     function groupByLogin(const items: TObjectList<TAuthData>): TDictionary<String, TAuthData>;
-
-  var
-    FCore: TDictionary<String, TAuthData>;
-    function isFoundInFile(const fileName, key, value: String): Boolean;
-    function encrypt(const str: String): String;
-
   public
   { name of the key under which json object stores authorization info }
     const
@@ -44,7 +40,7 @@ type
     property users: TObjectList<TAuthData> read FUsers write FUsers;
     /// <summary> Return true if the argument contains valid login credentials,
     /// otherwise return false</summary>
-    function isValidLoginData(const AuthData: ILoginData): Boolean;
+    function isValidLoginData(const LoginData: ILoginData): Boolean;
     /// <summary> Constructor.</summary>
     /// <param name="path">Location of a file that contains login info of all
     /// authorized users. Assume the file exists.</param>
@@ -61,11 +57,12 @@ uses uTPLb_Constants, System.hash, System.IOUtils,
 constructor TSimpleAuthentification.Create(const path: String);
 begin
   FUsers := TObjectList<TAuthData>.Create();
+  FEncryptor := TEncrypt.Create();
   if not(TFile.Exists(path, False)) then
     raise Exception.Create('File "' + path + '" with authentication data is not found');
   LoadFromJFile(path);
   try
-    FCore := groupByLogin(users);
+    FUsersIndexed := groupByLogin(users);
   except
     on e: Exception do
     begin
@@ -74,17 +71,6 @@ begin
       raise Exception.Create('Failed to group by login name: ' + e.Message);
     end;
   end;
-end;
-
-{ Encrypts a string }
-function TSimpleAuthentification.encrypt(const str: String): String;
-var
-  h2: THashSHA2;
-
-begin
-  h2 := THashSHA2.Create(SHA256);
-  h2.Update(str);
-  result := h2.HashAsString;
 end;
 
 function TSimpleAuthentification.groupByLogin(const items: TObjectList<TAuthData>)
@@ -106,50 +92,21 @@ begin
   end
 end;
 
-{ Returns true iff a file with given name contains a line with two
-  given strings: key and value
-}
-function TSimpleAuthentification.isFoundInFile(const fileName, key, value: String): Boolean;
+function TSimpleAuthentification.isValidLoginData(const LoginData: ILoginData): Boolean;
 var
-  lines: TStringList;
-  Size, i: Integer;
-  RegexObj: TRegEx;
-  items: TArray<String>;
-  trimmed: String;
-
+  LoginUserName, salt, hash: String;
+  AuthData: TAuthData;
 begin
-  result := False;
-  lines := TStringList.Create();
-  if FileExists(fileName) then
-    lines.LoadFromFile(fileName)
+  LoginUserName := LoginData.getUsername();
+  if not(FUsersIndexed.ContainsKey(LoginUserName)) then
+    result := False
   else
-    Size := lines.Count;
-  for i := 0 to Size - 1 do
   begin
-    trimmed := Trim(lines[i]);
-    // ignore empty lines and those starting with # (that are comments)
-    if (Length(trimmed) = 0) or (trimmed[low(trimmed)] = '#') then
-      continue;
-    // split the string on inner white spaces
-    RegexObj := TRegEx.Create('(?<=[^\s])\s+(?=[^\s])');
-    items := RegexObj.Split(trimmed, 0);
-    if (Length(items) = 2) and (Trim(items[0]) = key) and (Trim(items[1]) = value) then
-    begin
-      result := True;
-      break;
-    end;
+    AuthData := FUsersIndexed.items[LoginUserName];
+    salt := AuthData.salt;
+    hash := AuthData.hash;
+    result := FEncryptor.generateHash(LoginData.getPassword(), salt) = hash;
   end;
-  lines.DisposeOf;
-end;
-
-function TSimpleAuthentification.isValidLoginData(const AuthData: ILoginData): Boolean;
-var
-  username: String;
-
-begin
-  username := AuthData.getUsername();
-  /// stub
-  result := True;
 end;
 
 end.

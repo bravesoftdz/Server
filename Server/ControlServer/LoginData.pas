@@ -3,7 +3,7 @@ unit LoginData;
 interface
 
 uses
-  InterfaceLoginData;
+  InterfaceLoginData, System.JSON;
 
 type
   TLoginData = class(TInterfacedObject, ILoginData)
@@ -13,7 +13,10 @@ type
   public
     function getUsername(): String;
     function getPassword(): String;
-    constructor Create(const username, password: String);
+    /// <summary>Constructor</summary>
+    /// <param name="obj">a json object containing string-valued keys
+    /// "username" and "password"</param>
+    constructor Create(const obj: TJSONObject);
 
   end;
 
@@ -21,10 +24,20 @@ implementation
 
 { TSimpleAuthData }
 
-constructor TLoginData.Create(const username, password: String);
+constructor TLoginData.Create(const obj: TJSONObject);
+const
+  USERNAME_TOKEN = 'username';
+  PASSWORD_TOKEN = 'password';
+var
+  ValueUserName, ValuePassword: TJSONValue;
 begin
-  Self.username := username;
-  Self.password := password;
+  ValueUserName := obj.getValue(USERNAME_TOKEN);
+  ValuePassword := obj.getValue(PASSWORD_TOKEN);
+  if not(ValueUserName = nil) AND not(ValuePassword = nil) then
+  begin
+    Self.username := ValueUserName.value;
+    Self.password := ValuePassword.value;
+  end;
 end;
 
 function TLoginData.getPassword: String;

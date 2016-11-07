@@ -66,7 +66,6 @@ var
 begin
   result := '';
   size := length(pool);
-  Writeln('size: ' + inttostr(size));
   for counter := 1 to len do
   begin
     Randomize;

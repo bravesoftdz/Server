@@ -105,7 +105,7 @@ begin
     AuthData := FUsersIndexed.items[LoginUserName];
     salt := AuthData.salt;
     hash := AuthData.hash;
-    result := FEncryptor.generateHash(LoginData.getPassword(), salt) = hash;
+    result := FEncryptor.generateHash(LoginUserName, LoginData.getPassword(), salt) = hash;
   end;
 end;
 

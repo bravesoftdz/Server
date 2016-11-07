@@ -117,12 +117,15 @@ var
   LoginData: ILoginData;
   data: TJSonObject;
   Auth: IAuthentication;
+  isValid: Boolean;
 begin
   data := ctx.Request.BodyAsJSONObject;
   LoginData := TLoginData.Create(data);
-  if TControlServerController.Authentication.isValidLoginData(LoginData) then
+  isValid := TControlServerController.Authentication.isValidLoginData(LoginData);
+  if isValid then
     authorize(LoginData);
   LoginData := nil;
+  Render(TJsonBool.Create(isValid));
 end;
 
 procedure TControlServerController.logout(ctx: TWebContext);

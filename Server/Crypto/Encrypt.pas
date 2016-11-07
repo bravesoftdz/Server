@@ -25,9 +25,9 @@ type
   public
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
-    function Encrypt(const msg: String; const saltLength: Integer): TEncryptData;
+    function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
     /// <summary>Generate hash of a password with given salt.</summary>
-    function generateHash(const password, salt: String): String;
+    function generateHash(const login, password, salt: String): String;
 
   end;
 
@@ -38,23 +38,20 @@ uses
 
 { TEncrypt }
 
-function TEncrypt.Encrypt(const msg: String; const saltLength: Integer): TEncryptData;
+function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
 var
-  h2: THashSHA2;
   salt: String;
 begin
   salt := randomString(saltLength);
-  h2 := THashSHA2.Create(SHA256);
-  h2.Update(salt + msg);
-  result := TEncryptData.Create(salt, generateHash(msg, salt));
+  result := TEncryptData.Create(salt, generateHash(login, password, salt));
 end;
 
-function TEncrypt.generateHash(const password, salt: String): String;
+function TEncrypt.generateHash(const login, password, salt: String): String;
 var
   h2: THashSHA2;
 begin
   h2 := THashSHA2.Create(SHA256);
-  h2.Update(salt + password);
+  h2.Update(login + salt + password);
   Result := h2.HashAsString;
 end;
 

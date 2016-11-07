@@ -10,18 +10,20 @@ uses
 var
   cipher: TEncrypt;
   encryptData: TEncryptData;
-  input: String;
+  login, password: String;
   saltLength: Integer;
 
 begin
   cipher := TEncrypt.Create();
   try
-    if ParamCount >= 2 then
+    if ParamCount >= 3 then
     begin
-      input := paramstr(1);
-      saltLength := StrToInt(paramstr(2));
-      encryptData := cipher.Encrypt(input, saltLength);
-      Writeln(input);
+      login := paramstr(1);
+      password := paramstr(2);
+      saltLength := StrToInt(paramstr(3));
+      encryptData := cipher.Encrypt(login, password, saltLength);
+      Writeln('login -> "' + login + '"');
+      Writeln('password -> "' + password + '"');
       Writeln('salt -> "' + encryptData.salt + '"');
       Writeln('hash -> "' + encryptData.hash + '"');
       encryptData.DisposeOf;

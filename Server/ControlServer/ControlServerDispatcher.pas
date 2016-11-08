@@ -29,6 +29,7 @@ type
     class procedure Configure(const ServerConfigFile, UserAuthFile: String);
     /// <summary>Stop the server</summary>
     class procedure Stop();
+    class function isLoggedIn(const LoginData: ILoginData): Boolean;
 
   protected
     procedure OnBeforeAction(Context: TWebContext; const AActionNAme: string;
@@ -79,7 +80,7 @@ uses
 
 procedure TControlServerController.authorize(authData: ILoginData);
 begin
-  /// TODO
+  Session[authData.getUsername] := 'logged';
 end;
 
 class procedure TControlServerController.Configure(const ServerConfigFile, UserAuthFile: String);
@@ -112,16 +113,23 @@ begin
   Render(WebResource.getServerStatus());
 end;
 
+class function TControlServerController.isLoggedIn(const LoginData: ILoginData): Boolean;
+begin
+  Result := Session[LoginData.getUsername] = 'logged';
+end;
+
 procedure TControlServerController.login(ctx: TWebContext);
 var
   LoginData: ILoginData;
   data: TJSonObject;
   Auth: IAuthentication;
   isValid: Boolean;
+  isLogged: Boolean;
 begin
   data := ctx.Request.BodyAsJSONObject;
   LoginData := TLoginData.Create(data);
   isValid := TControlServerController.Authentication.isValidLoginData(LoginData);
+  isLogged := isLoggedIn(LoginData);
   if isValid then
     authorize(LoginData);
   LoginData := nil;

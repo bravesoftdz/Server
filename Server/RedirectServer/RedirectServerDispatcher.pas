@@ -66,7 +66,7 @@ type
 
     /// Get the status of the server along with all its components (logger,
     /// router, db storage, image storage)
-    /// The compoenents' statuses are delegated to the components themselves.
+    /// The components' statuses are delegated to the components themselves.
     [MVCPath('/server/status')]
     [MVCHTTPMethod([httpGET])]
     procedure getStatus(ctx: TWebContext);

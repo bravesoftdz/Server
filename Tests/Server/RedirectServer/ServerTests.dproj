@@ -80,7 +80,7 @@
         <SanitizedProjectName>ServerTests</SanitizedProjectName>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UnitSearchPath>..\..\..\..\libs\Spring4D\Source\Core\Container;..\..\..\..\libs\Spring4D\Source\base;..\..\..\..\libs\Spring4D\Source\base\Collections;..\..\..\..\libs\Spring4D\Source\base\Reflection;..\..\..\..\libs\Spring4D\Source\Core\Services;..\..\..\..\libs\bo;..\..\..\..\libs\DelphiMVCFramework\sources;..\..\..\..\libs\DMVVM;..\..\..\..\libs\bo\Adapters;..\..\..\..\libs\logging ;..\..\..\..\libs\Emails;..\..\..\..\libs\DelphiMVCFramework\lib\iocpdelphiframework\Base;..\..\..\..\libs\DelphiMVCFramework\lib\delphistompclient;..\..\..\..\libs\ServerTemplate\Server;..\..\..\..\libs\DelphiMVCFramework\lib\luadelphibinding;..\..\..\..\libs\ServerTemplate\Proxies;..\..\..\..\libs\ServerTemplate\ResourceProxy\sources;..\..\..\..\libs\ServerTemplate;..\..\..\..\libs\commons;..\..\..\..\libs\observer;$(BDS)\source\soap\wsdlimporter;..\..\..\..\libs\BaseForms;..\..\..\..\libs\Delphi-Mocks-master;..\..\..\..\libs\madExcept\madExcept\BDS16\win32;..\..\..\..\libs\madExcept\madDisAsm\BDS16\win32;..\..\..\..\libs\madExcept\madBasic\BDS16\win32;..\..\..\Server\RedirectServer;..\..\..\..\libs\dmustache;..\..\..\..\libs\ServerTemplate\Server;..\..\..\Server\Common\proxies;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\libs\Spring4D\Source\Core\Container;..\..\..\..\libs\Spring4D\Source\base;..\..\..\..\libs\Spring4D\Source\base\Collections;..\..\..\..\libs\Spring4D\Source\base\Reflection;..\..\..\..\libs\Spring4D\Source\Core\Services;..\..\..\..\libs\bo;..\..\..\..\libs\DelphiMVCFramework\sources;..\..\..\..\libs\DMVVM;..\..\..\..\libs\bo\Adapters;..\..\..\..\libs\logging ;..\..\..\..\libs\Emails;..\..\..\..\libs\DelphiMVCFramework\lib\iocpdelphiframework\Base;..\..\..\..\libs\DelphiMVCFramework\lib\delphistompclient;..\..\..\..\libs\ServerTemplate\Server;..\..\..\..\libs\DelphiMVCFramework\lib\luadelphibinding;..\..\..\..\libs\ServerTemplate\Proxies;..\..\..\..\libs\ServerTemplate\ResourceProxy\sources;..\..\..\..\libs\ServerTemplate;..\..\..\..\libs\commons;..\..\..\..\libs\observer;$(BDS)\source\soap\wsdlimporter;..\..\..\..\libs\BaseForms;..\..\..\..\libs\Delphi-Mocks-master;..\..\..\..\libs\madExcept\madExcept\BDS16\win32;..\..\..\..\libs\madExcept\madDisAsm\BDS16\win32;..\..\..\..\libs\madExcept\madBasic\BDS16\win32;..\..\..\Server\RedirectServer;..\..\..\..\libs\dmustache;..\..\..\..\libs\ServerTemplate\Server;..\..\..\Server\Common\proxies;..\..\..\..\libs\loggerpro;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>.\$(Platform)\$(Config)\dcu</DCC_DcuOutput>
         <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_E>false</DCC_E>
@@ -686,7 +686,16 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
                     <Platform Name="OSX32">
                         <RemoteDir>Contents\Resources</RemoteDir>
@@ -998,16 +1007,7 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                </DeployClass>
+                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>

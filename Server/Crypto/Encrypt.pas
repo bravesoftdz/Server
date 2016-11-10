@@ -26,7 +26,9 @@ type
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
     function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
-    /// <summary>Generate hash of a password with given salt.</summary>
+    /// <summary>Generate hash of a login and password with given salt. For any pair
+    /// of different input it must generate different output strings.
+    /// </summary>
     function generateHash(const login, password, salt: String): String;
 
   end;
@@ -52,7 +54,7 @@ var
 begin
   h2 := THashSHA2.Create(SHA256);
   h2.Update(login + salt + password);
-  Result := h2.HashAsString;
+  result := h2.HashAsString;
 end;
 
 function TEncrypt.randomString(const len: Integer): String;

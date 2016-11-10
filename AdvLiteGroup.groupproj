@@ -12,9 +12,6 @@
         <Projects Include="Tests\Server\RedirectServer\ServerTests.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\libs\DelphiMVCFramework\samples\fileupload\FilesUploadDemo.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="Server\Crypto\Crypto.dproj">
             <Dependencies/>
         </Projects>
@@ -53,15 +50,6 @@
     <Target Name="ServerTests:Make">
         <MSBuild Projects="Tests\Server\RedirectServer\ServerTests.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FilesUploadDemo">
-        <MSBuild Projects="..\libs\DelphiMVCFramework\samples\fileupload\FilesUploadDemo.dproj"/>
-    </Target>
-    <Target Name="FilesUploadDemo:Clean">
-        <MSBuild Projects="..\libs\DelphiMVCFramework\samples\fileupload\FilesUploadDemo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="FilesUploadDemo:Make">
-        <MSBuild Projects="..\libs\DelphiMVCFramework\samples\fileupload\FilesUploadDemo.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Crypto">
         <MSBuild Projects="Server\Crypto\Crypto.dproj"/>
     </Target>
@@ -72,13 +60,13 @@
         <MSBuild Projects="Server\Crypto\Crypto.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="RedirectServer;ControlServer;ServerTests;FilesUploadDemo;Crypto"/>
+        <CallTarget Targets="RedirectServer;ControlServer;ServerTests;Crypto"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="RedirectServer:Clean;ControlServer:Clean;ServerTests:Clean;FilesUploadDemo:Clean;Crypto:Clean"/>
+        <CallTarget Targets="RedirectServer:Clean;ControlServer:Clean;ServerTests:Clean;Crypto:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="RedirectServer:Make;ControlServer:Make;ServerTests:Make;FilesUploadDemo:Make;Crypto:Make"/>
+        <CallTarget Targets="RedirectServer:Make;ControlServer:Make;ServerTests:Make;Crypto:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

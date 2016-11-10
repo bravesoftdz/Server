@@ -115,7 +115,7 @@ end;
 
 class function TControlServerController.isLoggedIn(const LoginData: ILoginData): Boolean;
 begin
-  Result := Session[LoginData.getUsername] = 'logged';
+  //Result := Session[LoginData.getUsername] = 'logged';
 end;
 
 procedure TControlServerController.login(ctx: TWebContext);

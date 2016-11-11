@@ -11,7 +11,8 @@ uses
   DUnitX.Loggers.Console,
   DUnitX.Loggers.Xml.NUnit,
   DUnitX.TestFramework,
-  Crypto in 'Crypto.pas';
+  EncryptTest in 'EncryptTest.pas';
+
 
 var
   runner : ITestRunner;

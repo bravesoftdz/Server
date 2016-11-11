@@ -18,14 +18,16 @@ type
     // Simple single Test
     [Test]
     procedure Test1;
-    // Test with TestCase Attribute to supply parameters.
+
     // Test method that generate a hash string.
     // Testing strategy: partition the input as follows:
-    // 1.
+    // 1. the strings are: different, equal
+    // 2. the salts are: different, equal
     [Test]
-    [TestCase('TestA', '1,2')]
-    [TestCase('TestB', '3,4')]
-    procedure Test2(const AValue1: Integer; const AValue2: Integer);
+    [TestCase('Cover: diff, diff', 'user1, pswd1, salt1, user2, pswd2, salt2')]
+    [TestCase('Cover: equal, diff', 'user, pswd1, salt1, user, pswd2, salt2')]
+    [TestCase('Cover: diff, equal', 'user1, pswd, salt1, user2, pswd, salt2')]
+    procedure testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
   end;
 
 implementation
@@ -46,12 +48,14 @@ begin
 
 end;
 
-procedure TMyTestObject.Test2(const AValue1: Integer; const AValue2: Integer);
+procedure TMyTestObject.testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
 var
   enc: TEncrypt;
   hash1, hash2: String;
 begin
-  enc.generateHash()
+  hash1 := enc.generateHash(msg1, salt1);
+  hash2 := enc.generateHash(msg2, salt2);
+  Assert.AreNotEqual(hash1, hash2);
 end;
 
 initialization

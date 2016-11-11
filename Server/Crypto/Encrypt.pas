@@ -26,10 +26,12 @@ type
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
     function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
-    /// <summary>Generate hash of a login and password with given salt. For any pair
+    /// <summary>Generate a "salted" hash of a string. For any pair
     /// of different input it must generate different output strings.
     /// </summary>
-    function generateHash(const login, password, salt: String): String;
+    /// <param name="msg">a string which hash is to be generated</param>
+    /// <param name="salt">a salt</param>
+    function generateHash(const msg, salt: String): String;
 
   end;
 
@@ -45,15 +47,15 @@ var
   salt: String;
 begin
   salt := randomString(saltLength);
-  result := TEncryptData.Create(salt, generateHash(login, password, salt));
+  result := TEncryptData.Create(salt, generateHash(login + password, salt));
 end;
 
-function TEncrypt.generateHash(const login, password, salt: String): String;
+function TEncrypt.generateHash(const msg, salt: String): String;
 var
   h2: THashSHA2;
 begin
   h2 := THashSHA2.Create(SHA256);
-  h2.Update(login + salt + password);
+  h2.Update(msg + salt);
   result := h2.HashAsString;
 end;
 

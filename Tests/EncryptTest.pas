@@ -10,6 +10,7 @@ type
   [TestFixture]
   TMyTestObject = class(TObject)
   public
+
     [Setup]
     procedure Setup;
     [TearDown]
@@ -24,9 +25,9 @@ type
     // 1. the strings are: different, equal
     // 2. the salts are: different, equal
     [Test]
-    [TestCase('Cover: diff, diff', 'user1, pswd1, salt1, user2, pswd2, salt2')]
-    [TestCase('Cover: equal, diff', 'user, pswd1, salt1, user, pswd2, salt2')]
-    [TestCase('Cover: diff, equal', 'user1, pswd, salt1, user2, pswd, salt2')]
+    [TestCase('Cover: diff, diff', 'string-1, salt-1, string-2, salt-2')]
+    [TestCase('Cover: equal, diff', 'String, salt-1, String, salt-2')]
+    [TestCase('Cover: diff, equal', 'String-1, salt, String-2, salt')]
     procedure testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
   end;
 
@@ -48,13 +49,13 @@ begin
 
 end;
 
-procedure TMyTestObject.testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
+procedure TMyTestObject.testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2,
+  salt2: String);
 var
-  enc: TEncrypt;
   hash1, hash2: String;
 begin
-  hash1 := enc.generateHash(msg1, salt1);
-  hash2 := enc.generateHash(msg2, salt2);
+  hash1 := TEncrypt.generateHash(msg1, salt1);
+  hash2 := TEncrypt.generateHash(msg2, salt2);
   Assert.AreNotEqual(hash1, hash2);
 end;
 

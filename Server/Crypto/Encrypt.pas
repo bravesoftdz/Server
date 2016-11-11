@@ -21,17 +21,17 @@ type
   private
     /// <summary>Generate a random string of given length. Assume that the argument
     /// is a positive integer.</summary>
-    function randomString(const len: Integer): String;
+    class function randomString(const len: Integer): String;
   public
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
-    function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
+    class function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
     /// <summary>Generate a "salted" hash of a string. For any pair
     /// of different input it must generate different output strings.
     /// </summary>
     /// <param name="msg">a string which hash is to be generated</param>
     /// <param name="salt">a salt</param>
-    function generateHash(const msg, salt: String): String;
+    class function generateHash(const msg, salt: String): String;
 
   end;
 
@@ -42,7 +42,7 @@ uses
 
 { TEncrypt }
 
-function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
+class function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
 var
   salt: String;
 begin
@@ -50,7 +50,7 @@ begin
   result := TEncryptData.Create(salt, generateHash(login + password, salt));
 end;
 
-function TEncrypt.generateHash(const msg, salt: String): String;
+class function TEncrypt.generateHash(const msg, salt: String): String;
 var
   h2: THashSHA2;
 begin
@@ -59,7 +59,7 @@ begin
   result := h2.HashAsString;
 end;
 
-function TEncrypt.randomString(const len: Integer): String;
+class function TEncrypt.randomString(const len: Integer): String;
 const
   pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 var

@@ -15,6 +15,9 @@
         <Projects Include="Server\Crypto\Crypto.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Tests\CryptoTest.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +62,23 @@
     <Target Name="Crypto:Make">
         <MSBuild Projects="Server\Crypto\Crypto.dproj" Targets="Make"/>
     </Target>
+    <Target Name="CryptoTest">
+        <MSBuild Projects="Tests\CryptoTest.dproj"/>
+    </Target>
+    <Target Name="CryptoTest:Clean">
+        <MSBuild Projects="Tests\CryptoTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CryptoTest:Make">
+        <MSBuild Projects="Tests\CryptoTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="RedirectServer;ControlServer;ServerTests;Crypto"/>
+        <CallTarget Targets="RedirectServer;ControlServer;ServerTests;Crypto;CryptoTest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="RedirectServer:Clean;ControlServer:Clean;ServerTests:Clean;Crypto:Clean"/>
+        <CallTarget Targets="RedirectServer:Clean;ControlServer:Clean;ServerTests:Clean;Crypto:Clean;CryptoTest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="RedirectServer:Make;ControlServer:Make;ServerTests:Make;Crypto:Make"/>
+        <CallTarget Targets="RedirectServer:Make;ControlServer:Make;ServerTests:Make;Crypto:Make;CryptoTest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

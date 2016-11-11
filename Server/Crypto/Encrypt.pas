@@ -25,6 +25,10 @@ type
   public
     /// <summary>Encrypt given string. Encryption is supposed to be a one-way one
     /// (without possibility to decrypt) </summary>
+    /// <param name="login">user login. Assume non empty</param>
+    /// <param name="password">user password. Assume non empty</param>
+    /// <param name="saltLength">length of the salt to generate. Assume positive.</param>
+    /// <return>Return an object containing the salt of requested length and the login and password hash.</return>
     class function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
     /// <summary>Generate a "salted" hash of a string. For any pair
     /// of different input it must generate different output strings.
@@ -42,7 +46,8 @@ uses
 
 { TEncrypt }
 
-class function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
+class function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer)
+  : TEncryptData;
 var
   salt: String;
 begin

@@ -15,20 +15,25 @@ type
     procedure Setup;
     [TearDown]
     procedure TearDown;
-    // Sample Methods
-    // Simple single Test
+    // Test a method that generates a hash and salt for a given login and password.
+    // Testing strategy: partition the input as follows:
+    // 1. salt length: 1, 2, > 2
+    // 2. split login + password
     [Test]
-    procedure Test1;
+    [TestCase('Cover: 1-length salt', '1,user,password')]
+    [TestCase('Cover: 2-length salt', '2,user,password')]
+    [TestCase('Cover: 5-length salt', '1,user,password')]
+    procedure TestGenerateEncryptionSaltOfRequestedLength;
+    procedure Test
 
-    // Test method that generate a hash string.
+    // Test a method that generate a hash string.
     // Testing strategy: partition the input as follows:
     // 1. the strings are: different, equal
     // 2. the salts are: different, equal
-    [Test]
-    [TestCase('Cover: diff, diff', 'string-1, salt-1, string-2, salt-2')]
-    [TestCase('Cover: equal, diff', 'String, salt-1, String, salt-2')]
-    [TestCase('Cover: diff, equal', 'String-1, salt, String-2, salt')]
-    procedure testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
+      [Test][TestCase('Cover: diff, diff', 'string-1, salt-1, string-2, salt-2')
+      ][TestCase('Cover: equal, diff', 'String, salt-1, String, salt-2')
+      ][TestCase('Cover: diff, equal', 'String-1, salt, String-2, salt')
+      ] procedure testDifferentInputGivesDifferentHashes(const msg1, salt1, msg2, salt2: String);
   end;
 
 implementation
@@ -44,7 +49,7 @@ procedure TMyTestObject.TearDown;
 begin
 end;
 
-procedure TMyTestObject.Test1;
+procedure TMyTestObject.TestValidEncryption;
 begin
 
 end;

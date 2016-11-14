@@ -2,3 +2,4 @@ __history/
 *.dproj.local
 Win32/
 Win64/
+CryptoTest.stat

@@ -11,9 +11,17 @@ type
     FSalt: String;
     FHash: String;
   public
-    property salt: String read FSalt;
+    property Salt: String read FSalt;
     property Hash: String read FHash;
-    constructor Create(const salt, Hash: String);
+    /// <summary>Create an instance with a given salt and a hash which is
+    /// calculated based on given login, password and hash.
+    /// For any given salt, the hash should be different for all splittings of
+    /// the concatenated string login+password. E.g.: login-password pairs
+    /// {user, 1234} and {user1, 234} should have different hashes.</summary>
+    constructor Create(const Login, Password, Salt: String);
+    /// <summary>Generate a hash of a string.</summary>
+    /// <param name="msg">a string which hash is to be generated</param>
+    class function generateHash(const msg: String): String;
   end;
 
 type
@@ -29,13 +37,7 @@ type
     /// <param name="password">user password. Assume non empty</param>
     /// <param name="saltLength">length of the salt to generate. Assume positive.</param>
     /// <return>Return an object containing the salt of requested length and the login and password hash.</return>
-    class function Encrypt(const login, password: String; const saltLength: Integer): TEncryptData;
-    /// <summary>Generate a "salted" hash of a string. For any pair
-    /// of different input it must generate different output strings.
-    /// </summary>
-    /// <param name="msg">a string which hash is to be generated</param>
-    /// <param name="salt">a salt</param>
-    class function generateHash(const msg, salt: String): String;
+    class function Encrypt(const Login, Password: String; const saltLength: Integer): TEncryptData;
 
   end;
 
@@ -46,21 +48,21 @@ uses
 
 { TEncrypt }
 
-class function TEncrypt.Encrypt(const login, password: String; const saltLength: Integer)
+class function TEncrypt.Encrypt(const Login, Password: String; const saltLength: Integer)
   : TEncryptData;
 var
-  salt: String;
+  Salt: String;
 begin
-  salt := randomString(saltLength);
-  result := TEncryptData.Create(salt, generateHash(login + password, salt));
+  Salt := randomString(saltLength);
+  result := TEncryptData.Create(Login, Password, Salt);
 end;
 
-class function TEncrypt.generateHash(const msg, salt: String): String;
+class function TEncryptData.generateHash(const msg: String): String;
 var
   h2: THashSHA2;
 begin
   h2 := THashSHA2.Create(SHA256);
-  h2.Update(msg + salt);
+  h2.Update(msg);
   result := h2.HashAsString;
 end;
 
@@ -82,10 +84,10 @@ end;
 
 { TEncryptData }
 
-constructor TEncryptData.Create(const salt, Hash: String);
+constructor TEncryptData.Create(const Login, Password, Salt: String);
 begin
-  FSalt := salt;
-  FHash := Hash;
+  FSalt := Salt;
+  FHash := generateHash(Login + Salt + Password);
 end;
 
 end.

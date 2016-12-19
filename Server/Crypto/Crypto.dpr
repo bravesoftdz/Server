@@ -1,3 +1,9 @@
+{ This program generate a salt and a hash for given login and password.
+  It requires that the following comand line arguments are provided:
+  1. the login name
+  2. the password
+  3. the salt length
+}
 program Crypto;
 
 {$APPTYPE CONSOLE}
@@ -8,7 +14,8 @@ uses
   Encrypt in 'Encrypt.pas';
 
 const
-  // switches for comand line inputs
+  // switches for comand line inputs. They must be all different (in order
+  // to identify the parameters properly.
   LOGIN_SWITCH = 'l';
   PASSWORD_SWITCH = 'p';
   SALT_LENGHT_SWITCH = 's';
@@ -18,11 +25,12 @@ var
   encryptData: TEncryptData;
   login, password, saltLengthStr: String;
   saltLength: Integer;
+  switchChar: Char;
 
 begin
   cipher := TEncrypt.Create();
-  if FindCmdLineSwitch(LOGIN_SWITCH, login, False) And FindCmdLineSwitch(PASSWORD_SWITCH, password, False) And
-    FindCmdLineSwitch(SALT_LENGHT_SWITCH, saltLengthStr, False) then
+  if FindCmdLineSwitch(LOGIN_SWITCH, login, False) And FindCmdLineSwitch(PASSWORD_SWITCH, password,
+    False) And FindCmdLineSwitch(SALT_LENGHT_SWITCH, saltLengthStr, False) then
   begin
     saltLength := StrToInt(saltLengthStr);
     try
@@ -38,8 +46,17 @@ begin
     end;
   end
   else
-    Writeln('Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' -' + LOGIN_SWITCH +
-      ' <login name> -' + PASSWORD_SWITCH + ' <password> -' + SALT_LENGHT_SWITCH + ' <salt length>');
-  cipher.DisposeOf;
+  // print the instructions on how to use this program
+  begin
+    // this is an ugly way just to pick up a first char from SwitchChars set.
+    for switchChar in SwitchChars do
+    begin
+      Break
+    end;
+    Writeln('Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' ' + switchChar + LOGIN_SWITCH +
+      ' <login name> ' + switchChar + PASSWORD_SWITCH + ' <password> ' + switchChar +
+      SALT_LENGHT_SWITCH + ' <salt length>');
+    cipher.DisposeOf;
+  end;
 
 end.

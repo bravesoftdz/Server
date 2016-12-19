@@ -3,3 +3,4 @@ __history/
 Win32/
 Win64/
 CryptoTest.stat
+CryptoTest.identcache

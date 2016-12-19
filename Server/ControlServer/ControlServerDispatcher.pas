@@ -18,15 +18,17 @@ type
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var WebResource: IRedirectServerProxy;
     class var Authentication: IAuthentication;
+    class function getUsageString(): String;
 
   const
     AUTHENTICATED_TOKEN: String = 'authenticated';
+    SERVER_URL_SWITCH = 's';
+    SERVER_PORT_SWITCH = 'p';
+    AUTH_SWITCH = 'a';
+    SWITCH_CHAR = '-';
+
     /// <summary>Configure the server</summary>
-    /// <param name="ServerConfigFile">path to the server config file.
-    /// Assume that it exists.</param>
-    /// <param name="UserAuthFile">path to the file containing authorization data.
-    /// Assume that it exists.</param>
-    class procedure Configure(const ServerConfigFile, UserAuthFile: String);
+    class procedure Configure();
     /// <summary>Stop the server</summary>
     class procedure Stop();
     class function isLoggedIn(const LoginData: ILoginData): Boolean;
@@ -83,15 +85,27 @@ begin
   Session[authData.getUsername] := 'logged';
 end;
 
-class procedure TControlServerController.Configure(const ServerConfigFile, UserAuthFile: String);
+class procedure TControlServerController.Configure();
+var
+  ServerUrl, ServerPortStr, UserAuthFile: String;
+  ServerPort: Integer;
 begin
   try
-    TControlServerController.Settings := TSettings.Create(ServerConfigFile);
-    TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
-    TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-    TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
-      (TControlServerController.Settings.redirectServerUrl,
-      TControlServerController.Settings.redirectServerPort);
+    if FindCmdLineSwitch(SERVER_URL_SWITCH, ServerUrl, False) AND
+      FindCmdLineSwitch(SERVER_PORT_SWITCH, ServerPortStr, False) AND
+      FindCmdLineSwitch(AUTH_SWITCH, UserAuthFile, False) then
+    begin
+      ServerPort := StrToInt(ServerPortStr);
+      TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
+      TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+      TControlServerController.WebResource := TControlServerController.RESTAdapter.Build(ServerUrl,
+        ServerPort);
+    end
+    else
+    begin
+      Writeln(getUsageString());
+    end;
+
   except
     on e: Exception do
     begin
@@ -115,7 +129,7 @@ end;
 
 class function TControlServerController.isLoggedIn(const LoginData: ILoginData): Boolean;
 begin
-  //Result := Session[LoginData.getUsername] = 'logged';
+  // Result := Session[LoginData.getUsername] = 'logged';
 end;
 
 procedure TControlServerController.login(ctx: TWebContext);
@@ -153,6 +167,16 @@ begin
   Render('ok');
 end;
 
+class function TControlServerController.getUsageString: String;
+begin
+  Result := 'Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' ' + SWITCH_CHAR +
+    SERVER_URL_SWITCH + ' <url> ' + SWITCH_CHAR + SERVER_PORT_SWITCH + ' <port> ' + SWITCH_CHAR +
+    AUTH_SWITCH + ' <file>' + sLineBreak + 'where ' + sLineBreak +
+    '<url> - url of the redirect server,' + sLineBreak +
+    '<port> - port number of the redirect server,' + sLineBreak +
+    '<file> - file name with authorization data.';
+end;
+
 class procedure TControlServerController.Stop;
 begin
   if Assigned(TControlServerController.Settings) then
@@ -186,7 +210,7 @@ end;
 
 initialization
 
-TControlServerController.Configure('.\ControlServer.conf', 'authentications.txt');
+TControlServerController.Configure();
 
 finalization
 

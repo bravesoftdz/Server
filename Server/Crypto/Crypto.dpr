@@ -48,7 +48,8 @@ begin
   else
   // print the instructions on how to use this program
   begin
-    // this is an ugly way just to pick up a first char from SwitchChars set.
+    // this is an ugly way of selecting a char from SwitchChars set
+    // (in this case a first one is selected)
     for switchChar in SwitchChars do
     begin
       Break

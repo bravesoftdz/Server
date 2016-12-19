@@ -87,7 +87,7 @@ class procedure TControlServerController.Configure(const ServerConfigFile, UserA
 begin
   try
     TControlServerController.Settings := TSettings.Create(ServerConfigFile);
-    TControlServerController.Authentication := TSimpleAuthentification.Create(UserAuthFile);
+    TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
     TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
     TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
       (TControlServerController.Settings.redirectServerUrl,

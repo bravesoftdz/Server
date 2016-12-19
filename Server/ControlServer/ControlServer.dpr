@@ -16,13 +16,13 @@ uses
   Controller.webbase,
   Datasnap.DSSession,
   ControlServerDispatcher in 'ControlServerDispatcher.pas',
-  MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule} ,
+  MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule},
   Settings in 'Settings.pas',
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas',
-  SimpleAuthentification in 'SimpleAuthentification.pas',
+  FileBasedAuthentification in 'FileBasedAuthentification.pas' {/ InterfaceLoginData in 'InterfaceLoginData.pas',},
   InterfaceLoginData in 'InterfaceLoginData.pas',
   LoginData in 'LoginData.pas' {$R *.res},
-  AuthData in 'AuthData.pas',
+  AuthData in 'AuthData.pas' {$R *.res},
   Encrypt in '..\Crypto\Encrypt.pas';
 
 {$R *.res}

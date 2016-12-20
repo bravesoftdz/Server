@@ -218,17 +218,10 @@
         </DCCReference>
         <DCCReference Include="Settings.pas"/>
         <DCCReference Include="..\Common\proxies\RedirectServerProxy.interfaces.pas"/>
-        <DCCReference Include="FileBasedAuthentification.pas">
-            <Form>/ InterfaceLoginData in &apos;InterfaceLoginData.pas&apos;,</Form>
-        </DCCReference>
+        <DCCReference Include="FileBasedAuthentification.pas"/>
         <DCCReference Include="InterfaceLoginData.pas"/>
-        <DCCReference Include="LoginData.pas">
-            <Form>,
-  AuthData in &apos;AuthData.pas&apos; {$R *.res</Form>
-        </DCCReference>
-        <DCCReference Include="AuthData.pas">
-            <Form>$R *.res</Form>
-        </DCCReference>
+        <DCCReference Include="LoginData.pas"/>
+        <DCCReference Include="AuthData.pas"/>
         <DCCReference Include="..\Crypto\Encrypt.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

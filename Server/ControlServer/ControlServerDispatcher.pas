@@ -76,6 +76,7 @@ uses
   FireDAC.Comp.Client,
   Vcl.Forms,
   IdURI,
+  Winapi.Windows,
   System.Types, System.SysUtils, IdStack, SimpleAuthentification, System.JSON, LoginData;
 
 { TControlServerController }
@@ -90,12 +91,23 @@ var
   ServerUrl, ServerPortStr, UserAuthFile: String;
   ServerPort: Integer;
 begin
-  try
-    if FindCmdLineSwitch(SERVER_URL_SWITCH, ServerUrl, False) AND
-      FindCmdLineSwitch(SERVER_PORT_SWITCH, ServerPortStr, False) AND
-      FindCmdLineSwitch(AUTH_SWITCH, UserAuthFile, False) then
-    begin
+  if FindCmdLineSwitch(SERVER_URL_SWITCH, ServerUrl, False) AND
+    FindCmdLineSwitch(SERVER_PORT_SWITCH, ServerPortStr, False) AND
+    FindCmdLineSwitch(AUTH_SWITCH, UserAuthFile, False) then
+  begin
+    ServerPort := -1;
+    try
       ServerPort := StrToInt(ServerPortStr);
+    except
+      on E: Exception do
+      begin
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+        Writeln('Invalid port number: ', E.Message);
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+      end
+    end;
+    if ServerPort > 0 then
+    begin
       TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
       TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
       TControlServerController.WebResource := TControlServerController.RESTAdapter.Build(ServerUrl,
@@ -103,17 +115,16 @@ begin
     end
     else
     begin
-      Writeln(getUsageString());
+      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+      Writeln('Port number must be a positive one');
+      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
     end;
-
-  except
-    on e: Exception do
-    begin
-      System.Writeln('Error: ' + e.Message);
-      Exit();
-    end;
+  end
+  else
+  begin
+    Writeln(getUsageString());
+    Exit();
   end;
-
 end;
 
 procedure TControlServerController.getRoutes(ctx: TWebContext);
@@ -129,7 +140,8 @@ end;
 
 class function TControlServerController.isLoggedIn(const LoginData: ILoginData): Boolean;
 begin
-  // Result := Session[LoginData.getUsername] = 'logged';
+  // stub
+  Result := False;
 end;
 
 procedure TControlServerController.login(ctx: TWebContext);
@@ -174,7 +186,7 @@ begin
     AUTH_SWITCH + ' <file>' + sLineBreak + 'where ' + sLineBreak +
     '<url> - url of the redirect server,' + sLineBreak +
     '<port> - port number of the redirect server,' + sLineBreak +
-    '<file> - file name with authorization data.';
+    '<file> - file name containing authorization data.';
 end;
 
 class procedure TControlServerController.Stop;

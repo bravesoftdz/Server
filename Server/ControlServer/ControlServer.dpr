@@ -19,10 +19,10 @@ uses
   MainWebModule in 'MainWebModule.pas' {wbmMain: TWebModule},
   Settings in 'Settings.pas',
   RedirectServerProxy.interfaces in '..\Common\proxies\RedirectServerProxy.interfaces.pas',
-  FileBasedAuthentification in 'FileBasedAuthentification.pas' {/ InterfaceLoginData in 'InterfaceLoginData.pas',},
+  FileBasedAuthentification in 'FileBasedAuthentification.pas',
   InterfaceLoginData in 'InterfaceLoginData.pas',
-  LoginData in 'LoginData.pas' {$R *.res},
-  AuthData in 'AuthData.pas' {$R *.res},
+  LoginData in 'LoginData.pas',
+  AuthData in 'AuthData.pas',
   Encrypt in '..\Crypto\Encrypt.pas';
 
 {$R *.res}

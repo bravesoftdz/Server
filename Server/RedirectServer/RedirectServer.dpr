@@ -35,8 +35,6 @@ uses
 
 {$R *.res}
 
-var
-  i: Integer;
 
 begin
   ReportMemoryLeaksOnShutdown := true;

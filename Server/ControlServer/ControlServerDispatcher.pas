@@ -123,7 +123,6 @@ begin
   else
   begin
     Writeln(getUsageString());
-    Exit();
   end;
 end;
 

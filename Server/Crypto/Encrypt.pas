@@ -22,6 +22,9 @@ type
     /// <summary>Generate a hash of a string.</summary>
     /// <param name="msg">a string which hash is to be generated</param>
     class function generateHash(const msg: String): String;
+    /// <summary>Human-read representation of the class instance.
+    /// Contains the salt and the hash</summary>
+    function ToString: String; override;
   end;
 
 type
@@ -64,6 +67,11 @@ begin
   h2 := THashSHA2.Create(SHA256);
   h2.Update(msg);
   result := h2.HashAsString;
+end;
+
+function TEncryptData.ToString: String;
+begin
+  result := 'salt: "' + Salt + '"' + sLineBreak + 'hash: "' + Hash + '"';
 end;
 
 class function TEncrypt.randomString(const len: Integer): String;

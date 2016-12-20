@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2014/07/28 11:00:00.000.024,C:\Users\User\Documents\Embarcadero\Studio\Projects\WebModuleUnit1.dfm=C:\_Dev\Delphi\ServerTemplate\Server\BaseWM.dfm</Transaction>
-    <Transaction>2014/07/28 11:00:00.000.024,C:\Users\User\Documents\Embarcadero\Studio\Projects\WebModuleUnit1.pas=C:\_Dev\Delphi\ServerTemplate\Server\BaseWM.pas</Transaction>
-    <Transaction>2014/07/28 11:00:00.000.315,C:\_Dev\Delphi\ServerTemplate\Server\Server.Start.pas=C:\_Dev\Delphi\ServerTemplate\Server\Server.Launcher.pas</Transaction>
-    <Transaction>2014/07/28 11:00:00.000.872,C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\_Dev\Delphi\ServerTemplate\Server\ServerTemplate.dproj</Transaction>
-    <Transaction>2014/07/28 11:00:00.000.177,C:\_Dev\Delphi\ServerTemplate\Server\Unit1.pas=C:\_Dev\Delphi\ServerTemplate\Server\Controller.server.pas</Transaction>
-    <Transaction>2014/07/28 11:00:00.000.462,C:\_Dev\Delphi\ServerTemplate\Server\Unit1.pas=C:\_Dev\Delphi\ServerTemplate\Server\Server.Start.pas</Transaction>
-    <Transaction>2014/07/28 12:00:00.000.219,C:\_Dev\Delphi\libs\ServerTemplate\Server\Controller.webbase.pas=C:\_Dev\Delphi\libs\ServerTemplate\Server\Controller.web.pas</Transaction>
-    <Transaction>2016/07/28 10:19:15.000.379,C:\Dev\AdvLite\ControlServer\ServerTemplate.dproj=C:\Dev\AdvLite\ControlServer\ControlServer.dproj</Transaction>
-    <Transaction>2016/07/28 11:23:31.000.399,C:\Dev\AdvLite\ControlServer\Unit1.dfm=C:\Dev\AdvLite\ControlServer\MainWebModule.dfm</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.315,C:\_Dev\Delphi\ServerTemplate\Server\Server.Launcher.pas=C:\_Dev\Delphi\ServerTemplate\Server\Server.Start.pas</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.462,C:\_Dev\Delphi\ServerTemplate\Server\Server.Start.pas=C:\_Dev\Delphi\ServerTemplate\Server\Unit1.pas</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.872,C:\_Dev\Delphi\ServerTemplate\Server\ServerTemplate.dproj=C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.024,C:\_Dev\Delphi\ServerTemplate\Server\BaseWM.pas=C:\Users\User\Documents\Embarcadero\Studio\Projects\WebModuleUnit1.pas</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.177,C:\_Dev\Delphi\ServerTemplate\Server\Controller.server.pas=C:\_Dev\Delphi\ServerTemplate\Server\Unit1.pas</Transaction>
+    <Transaction>2014/07/28 11:00:00.000.024,C:\_Dev\Delphi\ServerTemplate\Server\BaseWM.dfm=C:\Users\User\Documents\Embarcadero\Studio\Projects\WebModuleUnit1.dfm</Transaction>
+    <Transaction>2014/07/28 12:00:00.000.219,C:\_Dev\Delphi\libs\ServerTemplate\Server\Controller.web.pas=C:\_Dev\Delphi\libs\ServerTemplate\Server\Controller.webbase.pas</Transaction>
+    <Transaction>2016/07/28 10:19:15.000.379,C:\Dev\AdvLite\ControlServer\ControlServer.dproj=C:\Dev\AdvLite\ControlServer\ServerTemplate.dproj</Transaction>
+    <Transaction>2016/07/28 11:23:31.000.399,C:\Dev\AdvLite\ControlServer\MainWebModule.dfm=C:\Dev\AdvLite\ControlServer\Unit1.dfm</Transaction>
   </Transactions>
 </BorlandProject>

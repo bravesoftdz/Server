@@ -36,6 +36,9 @@ const
   SERVER_PORT_SWITCH = 'p';
   AUTH_SWITCH = 'a';
   SWITCH_CHAR = '-';
+  ERROR_TEXT_COLOR = FOREGROUND_RED or FOREGROUND_INTENSITY;
+  WARNING_TEXT_COLOR = FOREGROUND_GREEN or FOREGROUND_INTENSITY;
+  DEFAULT_TEXT_COLOR = 7;
 
 var
   ServerUrl, ServerPortStr, UserAuthFile: String;
@@ -44,13 +47,13 @@ var
 
 begin
   ReportMemoryLeaksOnShutdown := True;
-  IsServerPortValid := False;
-  isServerUrlValid := False;
-  isUserAuthFileValid := False;
 
   FindCmdLineSwitch(SERVER_URL_SWITCH, ServerUrl, False);
   FindCmdLineSwitch(SERVER_PORT_SWITCH, ServerPortStr, False);
   FindCmdLineSwitch(AUTH_SWITCH, UserAuthFile, False);
+
+  isUserAuthFileValid := TFile.Exists(UserAuthFile);
+  isServerUrlValid := NOT(ServerUrl.Trim.IsEmpty());
 
   try
     ServerPort := StrToInt(ServerPortStr);
@@ -58,26 +61,25 @@ begin
   except
     on E: Exception do
     begin
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-      Writeln('Warning: port number: "' + ServerPortStr + '" is invalid.', E.Message);
-      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+      IsServerPortValid := False;
+      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), ERROR_TEXT_COLOR);
+      Writeln('Error: ' + E.Message);
+      SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT_COLOR);
     end
   end;
-  isUserAuthFileValid := TFile.Exists(UserAuthFile);
-  isServerUrlValid := NOT(ServerUrl.Trim.IsEmpty());
 
   if NOT(isUserAuthFileValid) then
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 16);
-    Writeln('Warning: file "' + UserAuthFile + '" is not found.');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), ERROR_TEXT_COLOR);
+    Writeln('Error: file "' + UserAuthFile + '" is not found.');
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT_COLOR);
   end;
 
   if NOT(IsServerPortValid) then
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-    Writeln('Port number must be a positive one');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), ERROR_TEXT_COLOR);
+    Writeln('Error: port number must be positive integer.');
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT_COLOR);
   end;
 
   if isUserAuthFileValid AND isServerUrlValid AND IsServerPortValid then
@@ -90,15 +92,14 @@ begin
   end
   else
   begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-    Writeln('Please, provide valid arguments.');
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), WARNING_TEXT_COLOR);
     Writeln('Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' ' + SWITCH_CHAR +
       SERVER_URL_SWITCH + ' <url> ' + SWITCH_CHAR + SERVER_PORT_SWITCH + ' <port> ' + SWITCH_CHAR +
       AUTH_SWITCH + ' <file>' + sLineBreak + 'where ' + sLineBreak +
       '<url> - url of the redirect server,' + sLineBreak +
       '<port> - port number of the redirect server,' + sLineBreak +
       '<file> - file name containing authorization data.');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT_COLOR);
     try
       TServerLauncher.EndServer;
     except

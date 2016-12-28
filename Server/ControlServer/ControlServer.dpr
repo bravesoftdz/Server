@@ -1,3 +1,7 @@
+{ A control server launcher.
+  It is a console program and it requires that arguments (such as server url,
+  port number and a file containing authorisations) are given. See the usage
+  string for details. }
 program ControlServer;
 {$APPTYPE CONSOLE}
 
@@ -23,12 +27,12 @@ uses
   InterfaceLoginData in 'InterfaceLoginData.pas',
   LoginData in 'LoginData.pas',
   AuthData in 'AuthData.pas',
-  Encrypt in '..\Crypto\Encrypt.pas';
+  Encrypt in '..\Crypto\Encrypt.pas', System.IOUtils;
 
 {$R *.res}
 
 const
-  SERVER_URL_SWITCH = 's';
+  SERVER_URL_SWITCH = 'u';
   SERVER_PORT_SWITCH = 'p';
   AUTH_SWITCH = 'a';
   SWITCH_CHAR = '-';
@@ -36,9 +40,13 @@ const
 var
   ServerUrl, ServerPortStr, UserAuthFile: String;
   ServerPort: Integer;
+  IsServerPortValid, isServerUrlValid, isUserAuthFileValid: Boolean;
 
 begin
-  ReportMemoryLeaksOnShutdown := true;
+  ReportMemoryLeaksOnShutdown := True;
+  IsServerPortValid := False;
+  isServerUrlValid := False;
+  isUserAuthFileValid := False;
 
   if FindCmdLineSwitch(SERVER_URL_SWITCH, ServerUrl, False) AND
     FindCmdLineSwitch(SERVER_PORT_SWITCH, ServerPortStr, False) AND
@@ -47,21 +55,34 @@ begin
     ServerPort := -1;
     try
       ServerPort := StrToInt(ServerPortStr);
+      IsServerPortValid := ServerPort > 0;
     except
       on E: Exception do
       begin
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-        Writeln('Invalid port number: ', E.Message);
+        Writeln('Invalid port number: ' + ServerPortStr, E.Message);
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
       end
     end;
+    isUserAuthFileValid := TFile.Exists(UserAuthFile);
+    isServerUrlValid := NOT(ServerUrl.IsNullOrWhiteSpace());
     if ServerPort > 0 then
     begin
-      TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
-      TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-      TControlServerController.WebResource := TControlServerController.RESTAdapter.Build(ServerUrl,
-        ServerPort);
-      TServerLauncher.RunAsConsole(TWebBaseController, TwbmMain);
+      if TFile.Exists(UserAuthFile) then
+      begin
+        TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
+        TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+        TControlServerController.WebResource := TControlServerController.RESTAdapter.Build
+          (ServerUrl, ServerPort);
+        TServerLauncher.RunAsConsole(TWebBaseController, TwbmMain);
+      end
+      else
+      begin
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+        Writeln('File ' + UserAuthFile + ' is not found');
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+        TServerLauncher.EndServer;
+      end;
     end
     else
     begin

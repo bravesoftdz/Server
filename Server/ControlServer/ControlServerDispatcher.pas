@@ -26,14 +26,13 @@ type
     /// <summary>Mark the user with given credetials as authorized</summary>
     procedure authorize(authData: ILoginData);
   public
-    class var Settings: TSettings;
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var WebResource: IRedirectServerProxy;
     class var Authentication: IAuthentication;
 
-    [MVCPath('/connect')]
-    [MVCHTTPMethod([httpGET])]
-    procedure testConnection(ctx: TWebContext);
+//    [MVCPath('/connect')]
+//    [MVCHTTPMethod([httpGET])]
+//    procedure testConnection(ctx: TWebContext);
 
     [MVCPath('/ping')]
     [MVCHTTPMethod([httpGET])]
@@ -98,7 +97,6 @@ procedure TControlServerController.login(ctx: TWebContext);
 var
   LoginData: ILoginData;
   data: TJSonObject;
-  Auth: IAuthentication;
   isValid: Boolean;
   isLogged: Boolean;
 begin
@@ -131,8 +129,6 @@ end;
 
 class procedure TControlServerController.Stop;
 begin
-  if Assigned(TControlServerController.Settings) then
-    TControlServerController.Settings.DisposeOf;
   if Assigned(TControlServerController.RESTAdapter) then
     TControlServerController.RESTAdapter.DisposeOf;
 
@@ -140,10 +136,10 @@ begin
   TControlServerController.WebResource := nil;
 end;
 
-procedure TControlServerController.testConnection(ctx: TWebContext);
-var
-  resp: TResponse;
-begin
+//procedure TControlServerController.testConnection(ctx: TWebContext);
+//var
+//  resp: TResponse;
+//begin
   // try
   // resp := WebResource.serverPing;
   // try
@@ -158,7 +154,7 @@ begin
   // finally
   // resp := nil
   // end;
-end;
+//end;
 
 initialization
 

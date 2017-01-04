@@ -86,7 +86,7 @@ begin
   begin
     TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
     TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-    TControlServerController.WebResource := TControlServerController.RESTAdapter.Build(ServerUrl,
+    TControlServerController.RedirectServer := TControlServerController.RESTAdapter.Build(ServerUrl,
       ServerPort);
     TServerLauncher.RunAsConsole(TWebBaseController, TwbmMain);
   end

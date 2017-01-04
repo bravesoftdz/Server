@@ -27,7 +27,7 @@ type
     procedure authorize(authData: ILoginData);
   public
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
-    class var WebResource: IRedirectServerProxy;
+    class var RedirectServer: IRedirectServerProxy;
     class var Authentication: IAuthentication;
 
 //    [MVCPath('/connect')]
@@ -84,7 +84,7 @@ end;
 procedure TControlServerController.getStatus(ctx: TWebContext);
 begin
 
-  Render(WebResource.getServerStatus());
+  Render(RedirectServer.getServerStatus());
 end;
 
 class function TControlServerController.isLoggedIn(const LoginData: ILoginData): Boolean;
@@ -133,7 +133,7 @@ begin
     TControlServerController.RESTAdapter.DisposeOf;
 
   TControlServerController.Authentication := nil;
-  TControlServerController.WebResource := nil;
+  TControlServerController.RedirectServer := nil;
 end;
 
 //procedure TControlServerController.testConnection(ctx: TWebContext);

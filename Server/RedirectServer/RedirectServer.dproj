@@ -182,7 +182,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <Debugger_RunParams>Server.conf</Debugger_RunParams>
+        <Debugger_RunParams>-c Server.conf</Debugger_RunParams>
         <DCC_Define>madExcept;LeakChecking;$(DCC_Define)</DCC_Define>
         <DCC_MapFile>3</DCC_MapFile>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -212,21 +212,28 @@
         <DCCReference Include="InterfaceLogger.pas"/>
         <DCCReference Include="MessageCodes.pas"/>
         <DCCReference Include="Settings.pas">
-            <Form>$R *.res</Form>
+            <Form>,
+  RequestClick in &apos;RequestClick.pas&apos;,
+  RequestView in &apos;RequestView.pas&apos; {$R *.res</Form>
         </DCCReference>
         <DCCReference Include="RequestClick.pas"/>
         <DCCReference Include="RequestView.pas">
-            <Form>$R *.res</Form>
+            <Form>,
+  Logger in &apos;Logger.pas&apos; {$R *.res</Form>
         </DCCReference>
         <DCCReference Include="Logger.pas">
-            <Form>$R *.res</Form>
+            <Form>,
+  RedirectServerDispatcher in &apos;RedirectServerDispatcher.pas&apos;,
+  RedirectServerProxy.interfaces in &apos;..\Common\proxies\RedirectServerProxy.interfaces.pas&apos;,
+  ImageStorage in &apos;ImageStorage.pas&apos;,
+  ServerConfig in &apos;ServerConfig.pas&apos;,
+  LoggerConfig in &apos;LoggerConfig.pas&apos;,
+  InterfaceLoggable in &apos;InterfaceLoggable.pas&apos;, System.IOUtils;
+
+{$R *.res</Form>
         </DCCReference>
-        <DCCReference Include="RedirectServerDispatcher.pas">
-            <Form>$R *.res</Form>
-        </DCCReference>
-        <DCCReference Include="..\Common\proxies\RedirectServerProxy.interfaces.pas">
-            <Form>$R *.res</Form>
-        </DCCReference>
+        <DCCReference Include="RedirectServerDispatcher.pas"/>
+        <DCCReference Include="..\Common\proxies\RedirectServerProxy.interfaces.pas"/>
         <DCCReference Include="ImageStorage.pas"/>
         <DCCReference Include="ServerConfig.pas"/>
         <DCCReference Include="LoggerConfig.pas"/>
@@ -505,6 +512,18 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="ModelSupport_RedirectServer\RedirectServerProxy\interfaces\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_RedirectServer\Controller\webbase\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_RedirectServer\AdvStats\default.txaPackage" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
@@ -512,6 +531,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="ModelSupport_RedirectServer\Server\Launcher\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_RedirectServer\Server\Launcher\default.txaPackage" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -535,24 +560,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\InterfaceAuthentication\default.txvpck" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\Settings\default.txvpck" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\RequestClick\default.txaPackage" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="ModelSupport_RedirectServer\MainWebModule\default.txvpck" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
@@ -565,7 +572,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\RedirectServerProxy\interfaces\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                <DeployFile LocalName="ModelSupport_RedirectServer\InterfaceAuthentication\default.txvpck" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -577,13 +584,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\Controller\webbase\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                <DeployFile LocalName="ModelSupport_RedirectServer\Settings\default.txvpck" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ModelSupport_RedirectServer\Server\Launcher\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                <DeployFile LocalName="ModelSupport_RedirectServer\RequestClick\default.txaPackage" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -829,16 +836,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                </DeployClass>
+                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
                 <DeployClass Name="ProjectOSXResource">
                     <Platform Name="OSX32">
                         <RemoteDir>Contents\Resources</RemoteDir>
@@ -1150,7 +1148,16 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>

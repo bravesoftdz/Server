@@ -26,15 +26,13 @@ type
     class var Storage: TDMStorage;
     class var Logger: ILogger;
     class var ImageStorage: TImageStorage;
-    class var ServerConfig: TServerConfig;
     class var ServerConfigPath: String;
 
     procedure SendImage(const path: String; const ctx: TWebContext);
-    procedure SetConfigFilePath(const path: String);
     procedure ArchiveAndRedirect(const campaign, article, track: String; const ctx: TWebContext);
     function GetQueryMap(const data: TStrings): TDictionary<String, String>;
     function feedQueryParams(const Base: String; const params: TDictionary<String, String>): String;
-    class procedure StartServer();
+    class procedure Initialize;
     class procedure StopServer();
     /// <summary>Load configuration from the file whose name is stored
     /// in ServerConfigPath</sumamry>
@@ -48,6 +46,9 @@ type
       var Handled: Boolean); override;
 
   public
+    /// <summary>configuration file setter</summary>
+    class procedure setConfigFile(const ConfigFile: String);
+
     /// Retrieve an image from the image storage
     [MVCPath('/images/($img)')]
     [MVCHTTPMethod([httpGET])]
@@ -229,11 +230,11 @@ end;
 
 class procedure TRedirectController.Configure;
 const
-  tag = 'TAdvStatsController.LoadConfig';
+  tag = 'TRedirectController.Configure';
 var
   ServerConfig: TServerConfig;
 begin
-  ServerConfig := TServerConfig.Create(TRedirectController.ServerConfigPath);
+  ServerConfig := TServerConfig.Create(ServerConfigPath);
   if Assigned(ServerConfig) then
   begin
     TRedirectController.LogIfPossible(TLEVELS.INFO, tag, 'Loading the configuration.');
@@ -306,31 +307,19 @@ var
   filePath: String;
 begin
   filePath := ImageStorage.getAbsolutePath(path);
-  if fileExists(filePath) then
+  if TFile.exists(filePath) then
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 
-procedure TRedirectController.SetConfigFilePath(const path: String);
+class procedure TRedirectController.setConfigFile(const ConfigFile: String);
 begin
-  TRedirectController.ServerConfig := TServerConfig.Create(path);
+  ServerConfigPath := ConfigFile;
+  Configure();
 end;
 
-class procedure TRedirectController.StartServer;
+
+class procedure TRedirectController.Initialize;
 begin
-  if ParamCount >= 1 then
-    TRedirectController.ServerConfigPath := paramstr(1)
-  else
-  begin
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15 OR BACKGROUND_RED);
-    System.Write('Warning:');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-    System.Writeln(' the program is called without argument hence ' +
-      'no configuration file is to be used.');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-    System.Writeln('Hardly believe this is what you want.');
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-    StopServer();
-  end;
   TRedirectController.Logger := TLogger.Create();
   TRedirectController.Router := TRouter.Create;
   TRedirectController.Storage := TDMStorage.Create(nil);
@@ -340,7 +329,6 @@ begin
   TRedirectController.RequestHandler.Logger := TRedirectController.Logger;
   TRedirectController.ImageStorage := TImageStorage.Create();
 
-  Configure();
 end;
 
 function TRedirectController.feedQueryParams(const Base: String;
@@ -372,7 +360,7 @@ end;
 
 initialization
 
-TRedirectController.StartServer();
+TRedirectController.Initialize();
 
 finalization
 

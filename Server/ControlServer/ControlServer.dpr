@@ -84,10 +84,7 @@ begin
 
   if isUserAuthFileValid AND isServerUrlValid AND IsServerPortValid then
   begin
-    TControlServerController.Authentication := TFileBasedAuthentification.Create(UserAuthFile);
-    TControlServerController.RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
-    TControlServerController.RedirectServer := TControlServerController.RESTAdapter.Build(ServerUrl,
-      ServerPort);
+    TControlServerController.Initialize(UserAuthFile, ServerUrl, ServerPort);
     TServerLauncher.RunAsConsole(TWebBaseController, TwbmMain);
   end
   else

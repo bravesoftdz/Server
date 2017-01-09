@@ -29,10 +29,16 @@ type
     class var RESTAdapter: TRESTAdapter<IRedirectServerProxy>;
     class var RedirectServer: IRedirectServerProxy;
     class var Authentication: IAuthentication;
+    /// <summary> Initialize the control server</summary>
+    /// <param name="AuthFileName">path to a file with authentification data.
+    /// Assume that it exists.</param>
+    /// <param name="ServerUrl">Url of the server that is supposed to be controlled</param>
+    /// <param name="ServerPort">Port number of the server that is supposed to be controlled</param>
+    class procedure Initialize(AuthFileName: String; ServerUrl: String; ServerPort: Integer);
 
-//    [MVCPath('/connect')]
-//    [MVCHTTPMethod([httpGET])]
-//    procedure testConnection(ctx: TWebContext);
+    // [MVCPath('/connect')]
+    // [MVCHTTPMethod([httpGET])]
+    // procedure testConnection(ctx: TWebContext);
 
     [MVCPath('/ping')]
     [MVCHTTPMethod([httpGET])]
@@ -127,34 +133,39 @@ begin
   Render('ok');
 end;
 
-class procedure TControlServerController.Stop;
+class procedure TControlServerController.Initialize(AuthFileName: String; ServerUrl: String;
+  ServerPort: Integer);
 begin
-  if Assigned(TControlServerController.RESTAdapter) then
-    TControlServerController.RESTAdapter.DisposeOf;
-
-  TControlServerController.Authentication := nil;
-  TControlServerController.RedirectServer := nil;
+  Authentication := TFileBasedAuthentification.Create(AuthFileName);
+  RESTAdapter := TRESTAdapter<IRedirectServerProxy>.Create;
+  RedirectServer := RESTAdapter.Build(ServerUrl, ServerPort);
 end;
 
-//procedure TControlServerController.testConnection(ctx: TWebContext);
-//var
-//  resp: TResponse;
-//begin
-  // try
-  // resp := WebResource.serverPing;
-  // try
-  // if not(resp = nil) then
-  // Render('Received responce: ' + resp.status)
-  // else
-  // Render('Null responce');
-  // except
-  // on E: EIdSocketError do
-  // Render('No connection');
-  // end;
-  // finally
-  // resp := nil
-  // end;
-//end;
+class procedure TControlServerController.Stop;
+begin
+  Authentication := nil;
+  RedirectServer := nil;
+end;
+
+// procedure TControlServerController.testConnection(ctx: TWebContext);
+// var
+// resp: TResponse;
+// begin
+// try
+// resp := WebResource.serverPing;
+// try
+// if not(resp = nil) then
+// Render('Received responce: ' + resp.status)
+// else
+// Render('Null responce');
+// except
+// on E: EIdSocketError do
+// Render('No connection');
+// end;
+// finally
+// resp := nil
+// end;
+// end;
 
 initialization
 

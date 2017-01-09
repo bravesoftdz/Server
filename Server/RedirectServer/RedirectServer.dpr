@@ -53,9 +53,18 @@ begin
     isConfigFileOK := NOT(String.IsNullOrEmpty(ConfigFile)) AND TFile.exists(ConfigFile);
   if (isConfigFileOK) then
   begin
-    TRedirectController.setConfigFile(ConfigFile);
-    TServerLauncher.SetPort(80);
-    TServerLauncher.RunAsConsole(TWebBaseController, TwmMain);
+    Writeln('OK');
+    try
+      TRedirectController.setConfigFile(ConfigFile);
+      TServerLauncher.SetPort(80);
+      TServerLauncher.RunAsConsole(TWebBaseController, TwmMain);
+    except
+      on E: Exception do begin
+          Writeln(E.Message);
+      end;
+
+    end;
+
   end
   else
   begin

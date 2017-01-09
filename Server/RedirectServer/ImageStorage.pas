@@ -35,8 +35,7 @@ type
     /// DirName is a relative path with respect to BaseDirName.
     /// Returns true in case of success, false otherwise.
     /// </summary>
-    function saveFile(const DirName: String;
-      const AFile: TAbstractWebRequestFile): Boolean;
+    function saveFile(const DirName: String; const AFile: TAbstractWebRequestFile): Boolean;
 
     function getStatus(): TJsonObject;
 
@@ -89,9 +88,11 @@ begin
   DirName := TPath.GetDirectoryName(fullPath);
   fileName := TPath.GetFileNameWithoutExtension(fullPath);
   extName := TPath.GetExtension(fullPath);
-  if isSafePath(DirName) and isSafePath(fileName) and
-    TFile.Exists(fullPath, False) and isAllowedExtension(extName) then
-    Result := DeleteFile(fullPath);
+  if isSafePath(DirName) and isSafePath(fileName) and TFile.Exists(fullPath, False) and
+    isAllowedExtension(extName) then
+    Result := DeleteFile(fullPath)
+  else
+    Result := False;
 end;
 
 function TImageStorage.getAbsolutePath(const path: String): String;
@@ -133,8 +134,8 @@ var
 begin
   fname := TPath.GetFileName(AFile.fileName.Trim(['"']));
   Result := False;
-  if not(ImageExists(TPath.Combine(DirName, fname))) and
-    TPath.HasValidFileNameChars(fname, False) then
+  if not(ImageExists(TPath.Combine(DirName, fname))) and TPath.HasValidFileNameChars(fname, False)
+  then
   begin
     BaseDir := TPath.Combine(BaseDirName, DirName);
     if not TDirectory.Exists(BaseDir, False) then
@@ -159,8 +160,7 @@ begin
   if not(isSafePath(dir)) then
     Exit;
   /// remove trailing path delimiters
-  dirNameTmp := TRegEx.Replace(dir, '^(\' + PathDelim + ')*|(\' + PathDelim +
-    ')*$', '');
+  dirNameTmp := TRegEx.Replace(dir, '^(\' + PathDelim + ')*|(\' + PathDelim + ')*$', '');
   /// remove duplicate path delimiters
   dirNameTmp := TRegEx.Replace(dirNameTmp, '(\' + PathDelim + ')*', PathDelim);
   if not(dirNameTmp.isEmpty) then

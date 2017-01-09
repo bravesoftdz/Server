@@ -212,28 +212,21 @@
         <DCCReference Include="InterfaceLogger.pas"/>
         <DCCReference Include="MessageCodes.pas"/>
         <DCCReference Include="Settings.pas">
-            <Form>,
-  RequestClick in &apos;RequestClick.pas&apos;,
-  RequestView in &apos;RequestView.pas&apos; {$R *.res</Form>
+            <Form>$R *.res</Form>
         </DCCReference>
         <DCCReference Include="RequestClick.pas"/>
         <DCCReference Include="RequestView.pas">
-            <Form>,
-  Logger in &apos;Logger.pas&apos; {$R *.res</Form>
+            <Form>$R *.res</Form>
         </DCCReference>
         <DCCReference Include="Logger.pas">
-            <Form>,
-  RedirectServerDispatcher in &apos;RedirectServerDispatcher.pas&apos;,
-  RedirectServerProxy.interfaces in &apos;..\Common\proxies\RedirectServerProxy.interfaces.pas&apos;,
-  ImageStorage in &apos;ImageStorage.pas&apos;,
-  ServerConfig in &apos;ServerConfig.pas&apos;,
-  LoggerConfig in &apos;LoggerConfig.pas&apos;,
-  InterfaceLoggable in &apos;InterfaceLoggable.pas&apos;, System.IOUtils;
-
-{$R *.res</Form>
+            <Form>$R *.res</Form>
         </DCCReference>
-        <DCCReference Include="RedirectServerDispatcher.pas"/>
-        <DCCReference Include="..\Common\proxies\RedirectServerProxy.interfaces.pas"/>
+        <DCCReference Include="RedirectServerDispatcher.pas">
+            <Form>$R *.res</Form>
+        </DCCReference>
+        <DCCReference Include="..\Common\proxies\RedirectServerProxy.interfaces.pas">
+            <Form>$R *.res</Form>
+        </DCCReference>
         <DCCReference Include="ImageStorage.pas"/>
         <DCCReference Include="ServerConfig.pas"/>
         <DCCReference Include="LoggerConfig.pas"/>

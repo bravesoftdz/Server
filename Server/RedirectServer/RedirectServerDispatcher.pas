@@ -307,7 +307,7 @@ var
   filePath: String;
 begin
   filePath := ImageStorage.getAbsolutePath(path);
-  if TFile.exists(filePath) then
+  if (TFile.exists(filePath)) then
     TMVCStaticContents.SendFile(filePath, 'image/jpg', ctx);
 end;
 

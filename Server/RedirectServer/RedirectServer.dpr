@@ -1,6 +1,7 @@
 program RedirectServer;
 {$APPTYPE CONSOLE}
 
+
 uses
   madExcept,
   madLinkDisAsm,
@@ -31,9 +32,12 @@ uses
   ImageStorage in 'ImageStorage.pas',
   ServerConfig in 'ServerConfig.pas',
   LoggerConfig in 'LoggerConfig.pas',
-  InterfaceLoggable in 'InterfaceLoggable.pas', System.IOUtils;
+  InterfaceLoggable in 'InterfaceLoggable.pas',
+
+  System.Generics.Collections, System.IOUtils;
 
 {$R *.res}
+
 
 const
   ROUTE_FILE = 'r';
@@ -48,17 +52,30 @@ const
   STORAGE_MAX_CACHE_SIZE_DAFAULT = 10;
   IMAGE_POOL_FOLDER = 'i';
   SWITCH_CHAR = '-';
+  BEFORE_TAG = '<';
+  AFTER_TAG = '>';
   ERROR_TEXT_COLOR = FOREGROUND_RED or FOREGROUND_INTENSITY;
   WARNING_TEXT_COLOR = FOREGROUND_GREEN or FOREGROUND_INTENSITY;
   DEFAULT_TEXT_COLOR = 7;
-  USAGE_ARRAY: TArray < TArray < String >>
-    = [[ROUTE_FILE, '<file>', 'path to the file with routes'],
-    [LOGGER_OUT_DIR, '<dir>', 'logger directory'], [LOGGER_MAX_CACHE_SIZE, '<log cache>',
-    'maximal number of records that the logger may hold in memory before persisting them']];
+  OPTIONAL = 'true';
+  REQUIRED = 'false';
+  USAGE_ARRAY: TArray < TArray < String >> = [[ROUTE_FILE, 'routes', 'path to the file with routes', REQUIRED],
+    [STORAGE_DSN, 'dsn', 'database source name of the storage, i.e: mysql:host=192.168.1.1;dbname=statistics', REQUIRED],
+    [STORAGE_LOGIN, 'login', 'login name to access the storage', REQUIRED],
+    [STORAGE_PASSWORD, 'pswd', 'password to access the storage', REQUIRED],
+    [IMAGE_POOL_FOLDER, 'image pool', 'path to the image folder', REQUIRED],
+    [LOGGER_OUT_DIR, 'log dir', 'logger output folder', OPTIONAL],
+    [LOGGER_MAX_CACHE_SIZE, 'log cache size', 'maximal number of records that the logger may hold in memory before persisting them', OPTIONAL],
+    [STORAGE_MAX_CACHE_SIZE, 'storage cache size', 'maximal number of records that the storage may hold in memory before persisting them', OPTIONAL]
+    ];
 
 var
   ConfigFile: String;
   isConfigFileOK: Boolean;
+  Item: TArray<String>;
+  usage, explanation, placeholderTagged, itemUsage: String;
+
+  { TArgument }
 
 begin
   ReportMemoryLeaksOnShutdown := true;
@@ -73,23 +90,38 @@ begin
   end
   else
   begin
+    usage := 'Usage:' + sLineBreak + ExtractFileName(paramstr(0));
+    explanation := '';
+    for Item in USAGE_ARRAY do
+    begin
+      placeholderTagged := BEFORE_TAG + Item[1] + AFTER_TAG;
+      itemUsage := SWITCH_CHAR + Item[0] + ' ' + placeholderTagged;
+      if (Item[3] = OPTIONAL) then
+        itemUsage := '[' + itemUsage + ']';
+      usage := usage + ' ' + itemUsage;
+      explanation := explanation + ' ' + placeholderTagged + ' - ' + Item[2] + sLineBreak;
+    end;
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), WARNING_TEXT_COLOR);
-    Writeln('Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' [' + SWITCH_CHAR + ROUTE_FILE +
-      ' <route file>] ' + SWITCH_CHAR + LOGGER_OUT_DIR + ' <dir> ' + SWITCH_CHAR +
-      LOGGER_MAX_CACHE_SIZE + ' <log cache> ' + SWITCH_CHAR + STORAGE_DSN + ' <dsn> ' + SWITCH_CHAR
-      + STORAGE_LOGIN + ' <login> ' + SWITCH_CHAR + STORAGE_PASSWORD + ' <pswd> [' + SWITCH_CHAR +
-      STORAGE_MAX_CACHE_SIZE + ' <storage cache>] ' + SWITCH_CHAR + IMAGE_POOL_FOLDER +
-      ' <image pool>' + sLineBreak + 'where ' + sLineBreak +
-      '<route file> - path to the file with routes,' + sLineBreak + '<dir> - logger directory' +
-      sLineBreak +
-      '<log cache> - maximal number of records that the logger may hold in memory before persisting them'
-      + sLineBreak +
-      '<dsn> - database source name of the storage, i.e: mysql:host=192.168.1.1;dbname=statistics' +
-      sLineBreak + '<login> - login to access the storage' + sLineBreak +
-      '<pswd> - password to access the storage' + sLineBreak +
-      '<storage cache> - maximal number of records that the storage may hold in memory before persisting them'
-      + sLineBreak + '<image pool> - an image folder.');
+    Writeln(usage);
+    Writeln('where:');
+    Writeln(explanation);
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT_COLOR);
+    // Writeln('Usage:' + sLineBreak + ExtractFileName(paramstr(0)) + ' [' + SWITCH_CHAR + ROUTE_FILE +
+    // ' <route file>] ' + SWITCH_CHAR + LOGGER_OUT_DIR + ' <dir> ' + SWITCH_CHAR +
+    // LOGGER_MAX_CACHE_SIZE + ' <log cache> ' + SWITCH_CHAR + STORAGE_DSN + ' <dsn> ' + SWITCH_CHAR
+    // + STORAGE_LOGIN + ' <login> ' + SWITCH_CHAR + STORAGE_PASSWORD + ' <pswd> [' + SWITCH_CHAR +
+    // STORAGE_MAX_CACHE_SIZE + ' <storage cache>] ' + SWITCH_CHAR + IMAGE_POOL_FOLDER +
+    // ' <image pool>' + sLineBreak + 'where ' + sLineBreak +
+    // '<route file> - path to the file with routes,' + sLineBreak + '<dir> - logger directory' +
+    // sLineBreak +
+    // '<log cache> - maximal number of records that the logger may hold in memory before persisting them'
+    // + sLineBreak +
+    // '<dsn> - database source name of the storage, i.e: mysql:host=192.168.1.1;dbname=statistics' +
+    // sLineBreak + '<login> - login to access the storage' + sLineBreak +
+    // '<pswd> - password to access the storage' + sLineBreak +
+    // '<storage cache> - maximal number of records that the storage may hold in memory before persisting them'
+    // + sLineBreak + '<image pool> - an image folder.');
+
     try
       TServerLauncher.EndServer;
     except
